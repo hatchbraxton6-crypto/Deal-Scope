@@ -1013,17 +1013,49 @@
 
   /* ===== RESPONSIVE ===== */
   @media (max-width: 900px) {
+    /* Layout */
     .main { grid-template-columns: 1fr; }
-    .map-panel { display: none; height: calc(100vh - 108px - 50px); }
+    .map-panel { display: none; height: calc(100vh - 166px - 50px); }
     .map-panel.mob-active { display: block; }
-    .results-panel { height: calc(100vh - 108px - 50px); }
+    .results-panel { height: calc(100vh - 166px - 50px); }
     .results-panel.mob-hidden { display: none; }
-    .nav-tabs { display: none; }
     .drawer { width: 100%; right: -100%; }
     .drawer.open { right: 0; }
-    .search-box { flex: 1; }
     .mobile-tabs { display: flex; }
     html, body { overflow: hidden; }
+
+    /* Topbar: hide credits, upgrade, mode label */
+    .nav-tabs { display: none; }
+    .credits { display: none; }
+    .filter-btn:not([data-filter-toggle]) + .filter-btn { display: none; }
+    #modeBtn { padding: 6px 8px; font-size: 12px; }
+
+    /* Searchbar: stack into 2 rows */
+    .searchbar {
+      height: auto;
+      flex-wrap: wrap;
+      padding: 8px 12px;
+      gap: 6px;
+    }
+    .search-box {
+      flex: 1 1 100%;
+      width: 100%;
+    }
+    .mob-hide { display: none !important; }
+    .save-search { display: none; }
+    .divider { display: none; }
+    [data-filter-toggle] { order: 2; }
+    .mob-filter-row {
+      display: flex;
+      flex: 1 1 100%;
+      gap: 6px;
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: none;
+      padding-bottom: 2px;
+    }
+    .mob-filter-row::-webkit-scrollbar { display: none; }
+    .mob-filter-row .filter-btn { flex-shrink: 0; white-space: nowrap; }
   }
 </style>
 </head>
@@ -1043,8 +1075,8 @@
     <button class="nav-tab" onclick="setTab('markets',this)">Markets</button>
   </nav>
   <div class="topbar-right">
-    <div class="credits">Credits: <strong>847</strong> / 1,000</div>
-    <button class="filter-btn">Upgrade</button>
+    <div class="credits mob-hide">Credits: <strong>847</strong> / 1,000</div>
+    <button class="filter-btn mob-hide">Upgrade</button>
     <button class="map-btn" id="themeToggle" onclick="toggleTheme()" title="Toggle dark mode" style="font-size:15px;">☾</button>
     <button class="filter-btn" id="modeBtn" onclick="toggleMode()" title="Switch investor mode" style="gap:6px;">🌱 Guided</button>
     <div class="avatar">BJ</div>
@@ -1061,19 +1093,18 @@
 <div class="searchbar">
   <input type="text" class="search-box" id="search" placeholder="Search address, city, ZIP, or county..."/>
 
-  <button class="filter-btn active" data-filter-toggle onclick="clearF('all')">
-    Filters <span class="count">0</span>
-  </button>
-
-  <button class="filter-btn" onclick="openDD(this,'price')">Price <span class="chev">▾</span></button>
-  <button class="filter-btn" onclick="openDD(this,'beds')">Beds/Baths <span class="chev">▾</span></button>
-  <button class="filter-btn" onclick="openDD(this,'cap')">Cap Rate <span class="chev">▾</span></button>
-  <button class="filter-btn" onclick="openDD(this,'strategy')">Strategy <span class="chev">▾</span></button>
-  <button class="filter-btn" onclick="openDD(this,'score')">DealScore <span class="chev">▾</span></button>
-  <button class="filter-btn" onclick="openDD(this,'status')">Status <span class="chev">▾</span></button>
-  <button class="filter-btn" onclick="openDD(this,'more')">More <span class="chev">▾</span></button>
-
-  <div class="divider"></div>
+  <div class="mob-filter-row">
+    <button class="filter-btn active" data-filter-toggle onclick="clearF('all')">
+      Filters <span class="count">0</span>
+    </button>
+    <button class="filter-btn" onclick="openDD(this,'price')">Price <span class="chev">▾</span></button>
+    <button class="filter-btn" onclick="openDD(this,'beds')">Beds/Baths <span class="chev">▾</span></button>
+    <button class="filter-btn" onclick="openDD(this,'cap')">Cap Rate <span class="chev">▾</span></button>
+    <button class="filter-btn" onclick="openDD(this,'strategy')">Strategy <span class="chev">▾</span></button>
+    <button class="filter-btn" onclick="openDD(this,'score')">DealScore <span class="chev">▾</span></button>
+    <button class="filter-btn" onclick="openDD(this,'status')">Status <span class="chev">▾</span></button>
+    <button class="filter-btn" onclick="openDD(this,'more')">More <span class="chev">▾</span></button>
+  </div>
 
   <button class="save-search">+ Save Search</button>
 </div>
