@@ -2110,43 +2110,43 @@
     };
 
     const g = goalContent[currentGoal] || goalContent.cashflow;
-    return \`
+    return `
       <div class="drawer-hero">
-        \${propImage(p.imgV, p.id, 800, 500)}
-        <div class="hero-badge">\${p.status} · \${p.dom} DOM</div>
+        ${propImage(p.imgV, p.id, 800, 500)}
+        <div class="hero-badge">${p.status} · ${p.dom} DOM</div>
       </div>
       <div class="drawer-body">
         <div class="drawer-price">
-          <span class="num">$\${p.price.toLocaleString()}</span>
-          <span class="badge">−\${p.discount}% below comp</span>
+          <span class="num">$${p.price.toLocaleString()}</span>
+          <span class="badge">−${p.discount}% below comp</span>
         </div>
-        <div style="font-size:13px;color:var(--ink-3);margin:-4px 0 20px;">\${p.addr}, \${p.city}, \${p.state} · \${p.beds}bd/\${p.baths}ba · \${p.sqft?.toLocaleString()||'—'} sqft</div>
+        <div style="font-size:13px;color:var(--ink-3);margin:-4px 0 20px;">${p.addr}, ${p.city}, ${p.state} · ${p.beds}bd/${p.baths}ba · ${p.sqft?.toLocaleString()||'—'} sqft</div>
 
         <div style="background:var(--surface-2);border:1px solid var(--border);border-radius:14px;padding:24px;margin-bottom:24px;text-align:center;">
-          <div style="font-size:11px;font-weight:600;color:var(--ink-3);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:8px;">\${g.keyLabel}</div>
-          <div style="font-size:38px;font-weight:800;color:\${g.keyColor};letter-spacing:-0.03em;">\${g.keyVal}</div>
+          <div style="font-size:11px;font-weight:600;color:var(--ink-3);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:8px;">${g.keyLabel}</div>
+          <div style="font-size:38px;font-weight:800;color:${g.keyColor};letter-spacing:-0.03em;">${g.keyVal}</div>
         </div>
 
-        <h4 style="font-size:13px;font-weight:700;margin-bottom:12px;">\${g.icon} \${g.headline}</h4>
+        <h4 style="font-size:13px;font-weight:700;margin-bottom:12px;">${g.icon} ${g.headline}</h4>
         <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:24px;">
-          \${g.details.map(d => \`<div style="display:flex;align-items:flex-start;gap:10px;font-size:13px;color:var(--ink-2);line-height:1.5;">
+          ${g.details.map(d => `<div style="display:flex;align-items:flex-start;gap:10px;font-size:13px;color:var(--ink-2);line-height:1.5;">
             <span style="color:var(--primary);font-weight:700;flex-shrink:0;margin-top:1px;">→</span>
-            <span>\${d}</span>
-          </div>\`).join('')}
+            <span>${d}</span>
+          </div>`).join('')}
         </div>
 
-        <div class="verdict \${g.verdict.cls}" style="display:block;font-size:12px;">
-          \${g.verdict.cls === 'great' ? '✅' : g.verdict.cls === 'good' ? '👍' : '⚠️'} \${g.verdict.text}
+        <div class="verdict ${g.verdict.cls}" style="display:block;font-size:12px;">
+          ${g.verdict.cls === 'great' ? '✅' : g.verdict.cls === 'good' ? '👍' : '⚠️'} ${g.verdict.text}
         </div>
 
         <div style="margin-top:24px;display:grid;grid-template-columns:1fr 1fr;gap:10px;">
-          <button onclick="addToCompare(\${p.id})" style="padding:12px;border:1px solid var(--border);border-radius:8px;background:var(--surface);font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;color:var(--ink);">Compare</button>
+          <button onclick="addToCompare(${p.id})" style="padding:12px;border:1px solid var(--border);border-radius:8px;background:var(--surface);font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;color:var(--ink);">Compare</button>
           <button style="padding:12px;border:none;border-radius:8px;background:var(--primary);color:white;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;">Contact Agent</button>
         </div>
 
         <p style="font-size:11px;color:var(--ink-4);text-align:center;margin-top:20px;">Want full financials? <button onclick="setMode('pro')" style="background:none;border:none;color:var(--primary);font-size:11px;font-weight:600;cursor:pointer;font-family:inherit;padding:0;">Switch to Pro mode →</button></p>
       </div>
-    \`;
+    `;
   }
 
   function openDrawer() {
