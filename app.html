@@ -948,11 +948,11 @@
     DealScope
   </div>
   <nav class="nav-tabs">
-    <button class="nav-tab active">Properties</button>
-    <button class="nav-tab">Lists</button>
-    <button class="nav-tab">Markets</button>
-    <button class="nav-tab">Comps</button>
-    <button class="nav-tab">Reports</button>
+    <button class="nav-tab active" onclick="setTab('properties',this)">Properties</button>
+    <button class="nav-tab" onclick="setTab('compare',this)">Compare</button>
+    <button class="nav-tab" onclick="setTab('brrrr',this)">BRRRR</button>
+    <button class="nav-tab" onclick="setTab('markets',this)">Markets</button>
+    <button class="nav-tab" onclick="setTab('reports',this)">Reports</button>
   </nav>
   <div class="topbar-right">
     <div class="credits">Credits: <strong>847</strong> / 1,000</div>
@@ -1043,13 +1043,89 @@
 
 </main>
 
+<!-- BRRRR PANEL -->
+<div id="brrrrPanel" style="display:none;height:calc(100vh - 108px);overflow-y:auto;background:var(--bg);padding:24px;">
+  <div style="max-width:860px;margin:0 auto;">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;">
+      <div>
+        <h2 style="font-size:22px;font-weight:800;letter-spacing:-0.01em;">BRRRR Calculator</h2>
+        <p style="font-size:13px;color:var(--ink-3);margin-top:4px;">Buy · Rehab · Rent · Refinance · Repeat</p>
+      </div>
+      <button onclick="resetBRRRR()" class="filter-btn">Reset</button>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px;">
+
+      <div class="data-table" style="border-radius:10px;overflow:hidden;">
+        <div style="padding:12px 16px;background:var(--primary);color:white;">
+          <div style="font-size:11px;text-transform:uppercase;letter-spacing:0.06em;opacity:0.8;margin-bottom:2px;">Step 1 — Buy</div>
+          <div style="font-size:14px;font-weight:700;">Purchase & Acquisition</div>
+        </div>
+        <div class="data-row"><span class="k">Purchase Price</span><span class="v"><input type="number" id="b-price" value="150000" oninput="calcBRRRR()" style="width:110px;text-align:right;border:1px solid var(--border);border-radius:4px;padding:2px 6px;background:var(--surface);color:var(--ink);font-family:inherit;font-size:13px;font-weight:600;"></span></div>
+        <div class="data-row"><span class="k">Down Payment %</span><span class="v"><input type="number" id="b-down" value="20" oninput="calcBRRRR()" style="width:70px;text-align:right;border:1px solid var(--border);border-radius:4px;padding:2px 6px;background:var(--surface);color:var(--ink);font-family:inherit;font-size:13px;font-weight:600;">%</span></div>
+        <div class="data-row"><span class="k">Closing Costs</span><span class="v"><input type="number" id="b-closing" value="4500" oninput="calcBRRRR()" style="width:110px;text-align:right;border:1px solid var(--border);border-radius:4px;padding:2px 6px;background:var(--surface);color:var(--ink);font-family:inherit;font-size:13px;font-weight:600;"></span></div>
+      </div>
+
+      <div class="data-table" style="border-radius:10px;overflow:hidden;">
+        <div style="padding:12px 16px;background:#7c3aed;color:white;">
+          <div style="font-size:11px;text-transform:uppercase;letter-spacing:0.06em;opacity:0.8;margin-bottom:2px;">Step 2 — Rehab</div>
+          <div style="font-size:14px;font-weight:700;">Renovation Budget</div>
+        </div>
+        <div class="data-row"><span class="k">Rehab Cost</span><span class="v"><input type="number" id="b-rehab" value="25000" oninput="calcBRRRR()" style="width:110px;text-align:right;border:1px solid var(--border);border-radius:4px;padding:2px 6px;background:var(--surface);color:var(--ink);font-family:inherit;font-size:13px;font-weight:600;"></span></div>
+        <div class="data-row"><span class="k">After Repair Value (ARV)</span><span class="v"><input type="number" id="b-arv" value="210000" oninput="calcBRRRR()" style="width:110px;text-align:right;border:1px solid var(--border);border-radius:4px;padding:2px 6px;background:var(--surface);color:var(--ink);font-family:inherit;font-size:13px;font-weight:600;"></span></div>
+        <div class="data-row"><span class="k">Holding Costs (months)</span><span class="v"><input type="number" id="b-hold" value="3" oninput="calcBRRRR()" style="width:60px;text-align:right;border:1px solid var(--border);border-radius:4px;padding:2px 6px;background:var(--surface);color:var(--ink);font-family:inherit;font-size:13px;font-weight:600;"> mo</span></div>
+        <div class="data-row"><span class="k">Monthly Holding Cost</span><span class="v"><input type="number" id="b-holdcost" value="800" oninput="calcBRRRR()" style="width:110px;text-align:right;border:1px solid var(--border);border-radius:4px;padding:2px 6px;background:var(--surface);color:var(--ink);font-family:inherit;font-size:13px;font-weight:600;"></span></div>
+      </div>
+
+      <div class="data-table" style="border-radius:10px;overflow:hidden;">
+        <div style="padding:12px 16px;background:var(--pos);color:white;">
+          <div style="font-size:11px;text-transform:uppercase;letter-spacing:0.06em;opacity:0.8;margin-bottom:2px;">Step 3 — Rent</div>
+          <div style="font-size:14px;font-weight:700;">Rental Income</div>
+        </div>
+        <div class="data-row"><span class="k">Monthly Rent</span><span class="v"><input type="number" id="b-rent" value="1800" oninput="calcBRRRR()" style="width:110px;text-align:right;border:1px solid var(--border);border-radius:4px;padding:2px 6px;background:var(--surface);color:var(--ink);font-family:inherit;font-size:13px;font-weight:600;"></span></div>
+        <div class="data-row"><span class="k">Vacancy Rate %</span><span class="v"><input type="number" id="b-vac" value="8" oninput="calcBRRRR()" style="width:60px;text-align:right;border:1px solid var(--border);border-radius:4px;padding:2px 6px;background:var(--surface);color:var(--ink);font-family:inherit;font-size:13px;font-weight:600;">%</span></div>
+        <div class="data-row"><span class="k">Prop Tax + Insurance / mo</span><span class="v"><input type="number" id="b-expenses" value="350" oninput="calcBRRRR()" style="width:110px;text-align:right;border:1px solid var(--border);border-radius:4px;padding:2px 6px;background:var(--surface);color:var(--ink);font-family:inherit;font-size:13px;font-weight:600;"></span></div>
+        <div class="data-row"><span class="k">CapEx / Mgmt / mo</span><span class="v"><input type="number" id="b-capex" value="180" oninput="calcBRRRR()" style="width:110px;text-align:right;border:1px solid var(--border);border-radius:4px;padding:2px 6px;background:var(--surface);color:var(--ink);font-family:inherit;font-size:13px;font-weight:600;"></span></div>
+      </div>
+
+      <div class="data-table" style="border-radius:10px;overflow:hidden;">
+        <div style="padding:12px 16px;background:var(--warn);color:white;">
+          <div style="font-size:11px;text-transform:uppercase;letter-spacing:0.06em;opacity:0.8;margin-bottom:2px;">Step 4 — Refinance</div>
+          <div style="font-size:14px;font-weight:700;">Cash-Out Refi</div>
+        </div>
+        <div class="data-row"><span class="k">Refi LTV %</span><span class="v"><input type="number" id="b-ltv" value="75" oninput="calcBRRRR()" style="width:60px;text-align:right;border:1px solid var(--border);border-radius:4px;padding:2px 6px;background:var(--surface);color:var(--ink);font-family:inherit;font-size:13px;font-weight:600;">%</span></div>
+        <div class="data-row"><span class="k">Refi Interest Rate %</span><span class="v"><input type="number" id="b-rate" value="7.5" step="0.1" oninput="calcBRRRR()" style="width:70px;text-align:right;border:1px solid var(--border);border-radius:4px;padding:2px 6px;background:var(--surface);color:var(--ink);font-family:inherit;font-size:13px;font-weight:600;">%</span></div>
+        <div class="data-row"><span class="k">Refi Closing Costs</span><span class="v"><input type="number" id="b-reficlosing" value="3000" oninput="calcBRRRR()" style="width:110px;text-align:right;border:1px solid var(--border);border-radius:4px;padding:2px 6px;background:var(--surface);color:var(--ink);font-family:inherit;font-size:13px;font-weight:600;"></span></div>
+      </div>
+    </div>
+
+    <!-- RESULTS -->
+    <div id="brrrrResults" style="background:linear-gradient(135deg,#0f172a,#1e3a6e);border-radius:12px;padding:24px;color:white;"></div>
+  </div>
+</div>
+
+<!-- COMPARE PANEL -->
+<div id="comparePanel" style="display:none;height:calc(100vh - 108px);overflow-y:auto;background:var(--bg);padding:24px;">
+  <div style="max-width:1000px;margin:0 auto;">
+    <div style="margin-bottom:24px;">
+      <h2 style="font-size:22px;font-weight:800;letter-spacing:-0.01em;">Side-by-Side Comparison</h2>
+      <p style="font-size:13px;color:var(--ink-3);margin-top:4px;">Click any property in the list to add it here (up to 3).</p>
+    </div>
+    <div id="compareGrid" style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;"></div>
+    <div id="compareEmpty" style="text-align:center;padding:60px 20px;color:var(--ink-3);">
+      <div style="font-size:48px;margin-bottom:16px;">⚖️</div>
+      <div style="font-size:16px;font-weight:600;margin-bottom:8px;">No properties selected</div>
+      <div style="font-size:13px;">Go to Properties tab and click a property, then come back here to compare.</div>
+    </div>
+  </div>
+</div>
+
 <!-- DETAIL DRAWER -->
 <aside class="drawer" id="drawer">
   <div class="drawer-header">
     <button class="drawer-close" onclick="closeDrawer()">×</button>
     <div class="drawer-actions">
       <button class="drawer-action">☆ Save</button>
-      <button class="drawer-action">+ List</button>
+      <button class="drawer-action" onclick="addToCompare(selectedId);alert('Added to compare — click the Compare tab to view.')">⊕ Compare</button>
       <button class="drawer-action" onclick="exportCSV()">⤓ Export</button>
       <button class="drawer-action primary">Skip Trace</button>
     </div>
@@ -1699,6 +1775,137 @@
       closeDD();
     }
   });
+
+  // ===== TAB NAVIGATION =====
+  function setTab(tab, btn) {
+    document.querySelectorAll('.nav-tab').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    const panels = { properties: document.querySelector('.main'), brrrr: document.getElementById('brrrrPanel'), compare: document.getElementById('comparePanel') };
+    document.querySelector('.searchbar').style.display = tab === 'properties' ? '' : 'none';
+    document.querySelector('.main').style.display = tab === 'properties' ? '' : 'none';
+    document.getElementById('brrrrPanel').style.display = tab === 'brrrr' ? '' : 'none';
+    document.getElementById('comparePanel').style.display = tab === 'compare' ? '' : 'none';
+    if (tab === 'compare') renderCompare();
+    if (tab === 'brrrr') calcBRRRR();
+  }
+
+  // ===== BRRRR CALCULATOR =====
+  function calcBRRRR() {
+    const price = parseFloat(document.getElementById('b-price').value) || 0;
+    const downPct = parseFloat(document.getElementById('b-down').value) || 20;
+    const closing = parseFloat(document.getElementById('b-closing').value) || 0;
+    const rehab = parseFloat(document.getElementById('b-rehab').value) || 0;
+    const arv = parseFloat(document.getElementById('b-arv').value) || 0;
+    const holdMo = parseFloat(document.getElementById('b-hold').value) || 0;
+    const holdCost = parseFloat(document.getElementById('b-holdcost').value) || 0;
+    const rent = parseFloat(document.getElementById('b-rent').value) || 0;
+    const vacPct = parseFloat(document.getElementById('b-vac').value) || 8;
+    const expenses = parseFloat(document.getElementById('b-expenses').value) || 0;
+    const capex = parseFloat(document.getElementById('b-capex').value) || 0;
+    const ltvPct = parseFloat(document.getElementById('b-ltv').value) || 75;
+    const rate = parseFloat(document.getElementById('b-rate').value) || 7.5;
+    const refiClosing = parseFloat(document.getElementById('b-reficlosing').value) || 0;
+
+    const down = price * (downPct / 100);
+    const totalInvested = down + closing + rehab + (holdMo * holdCost);
+    const refiLoan = arv * (ltvPct / 100);
+    const cashOut = refiLoan - (price - down) - refiClosing;
+    const leftInDeal = totalInvested - cashOut;
+    const monthlyPI = Math.round(refiLoan * (rate / 100 / 12) / (1 - Math.pow(1 + rate / 100 / 12, -360)));
+    const effectiveRent = rent * (1 - vacPct / 100);
+    const monthlyCF = effectiveRent - monthlyPI - expenses - capex;
+    const annualCF = monthlyCF * 12;
+    const cocReturn = leftInDeal > 0 ? ((annualCF / leftInDeal) * 100).toFixed(1) : '∞';
+    const capRate = price > 0 ? (((effectiveRent - expenses - capex) * 12 / price) * 100).toFixed(1) : 0;
+    const equity = arv - refiLoan;
+    const isGoodDeal = cashOut >= totalInvested * 0.75 && monthlyCF > 0;
+
+    document.getElementById('brrrrResults').innerHTML = `
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:20px;">
+        <div><div style="font-size:10px;text-transform:uppercase;letter-spacing:0.06em;opacity:0.7;margin-bottom:4px;">Total Cash In</div><div style="font-size:28px;font-weight:800;letter-spacing:-0.02em;">${fmt$(Math.round(totalInvested))}</div></div>
+        <div><div style="font-size:10px;text-transform:uppercase;letter-spacing:0.06em;opacity:0.7;margin-bottom:4px;">Cash-Out at Refi</div><div style="font-size:28px;font-weight:800;letter-spacing:-0.02em;color:${cashOut > 0 ? '#4ade80' : '#f87171'};">${fmt$(Math.round(cashOut))}</div></div>
+        <div><div style="font-size:10px;text-transform:uppercase;letter-spacing:0.06em;opacity:0.7;margin-bottom:4px;">Left in Deal</div><div style="font-size:28px;font-weight:800;letter-spacing:-0.02em;color:${leftInDeal <= 0 ? '#4ade80' : 'white'};">${fmt$(Math.round(leftInDeal))}</div></div>
+        <div><div style="font-size:10px;text-transform:uppercase;letter-spacing:0.06em;opacity:0.7;margin-bottom:4px;">Monthly Cash Flow</div><div style="font-size:28px;font-weight:800;letter-spacing:-0.02em;color:${monthlyCF > 0 ? '#4ade80' : '#f87171'};">${monthlyCF > 0 ? '+' : ''}${fmt$(Math.round(monthlyCF))}</div></div>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;padding-top:16px;border-top:1px solid rgba(255,255,255,0.15);margin-bottom:16px;">
+        <div><div style="font-size:10px;opacity:0.7;margin-bottom:2px;">Cash-on-Cash</div><div style="font-size:18px;font-weight:700;">${cocReturn}%</div></div>
+        <div><div style="font-size:10px;opacity:0.7;margin-bottom:2px;">Cap Rate</div><div style="font-size:18px;font-weight:700;">${capRate}%</div></div>
+        <div><div style="font-size:10px;opacity:0.7;margin-bottom:2px;">Equity After Refi</div><div style="font-size:18px;font-weight:700;">${fmt$(Math.round(equity))}</div></div>
+        <div><div style="font-size:10px;opacity:0.7;margin-bottom:2px;">New Loan Amount</div><div style="font-size:18px;font-weight:700;">${fmt$(Math.round(refiLoan))}</div></div>
+      </div>
+      <div style="padding:12px 16px;border-radius:8px;background:${isGoodDeal ? 'rgba(74,222,128,0.15)' : 'rgba(248,113,113,0.15)'};border:1px solid ${isGoodDeal ? 'rgba(74,222,128,0.3)' : 'rgba(248,113,113,0.3)'};font-size:13px;">
+        ${isGoodDeal
+          ? `✅ <strong>Strong BRRRR candidate.</strong> You recover ${Math.round((cashOut/totalInvested)*100)}% of your cash at refi and still cash flow ${fmt$(Math.round(monthlyCF))}/mo.`
+          : `⚠️ <strong>Needs work.</strong> ${cashOut < 0 ? 'The refi doesn\'t cover your basis — adjust ARV, LTV, or reduce rehab costs.' : 'Cash flow is negative after refi — check your rent estimate or expenses.'}`
+        }
+      </div>
+    `;
+  }
+
+  function resetBRRRR() {
+    ['b-price','b-down','b-closing','b-rehab','b-arv','b-hold','b-holdcost','b-rent','b-vac','b-expenses','b-capex','b-ltv','b-rate','b-reficlosing']
+      .forEach(id => document.getElementById(id).value = {
+        'b-price':150000,'b-down':20,'b-closing':4500,'b-rehab':25000,'b-arv':210000,
+        'b-hold':3,'b-holdcost':800,'b-rent':1800,'b-vac':8,'b-expenses':350,
+        'b-capex':180,'b-ltv':75,'b-rate':7.5,'b-reficlosing':3000
+      }[id]);
+    calcBRRRR();
+  }
+
+  // ===== COMPARISON =====
+  const compareIds = [];
+
+  function addToCompare(id) {
+    if (compareIds.includes(id)) return;
+    if (compareIds.length >= 3) compareIds.shift();
+    compareIds.push(id);
+  }
+
+  function renderCompare() {
+    const grid = document.getElementById('compareGrid');
+    const empty = document.getElementById('compareEmpty');
+    if (compareIds.length === 0) { grid.innerHTML = ''; empty.style.display = ''; return; }
+    empty.style.display = 'none';
+    const rows = ['Purchase Price','Comp Value','Below Comp','Beds / Baths','Sqft','Year Built','Est. Rent/mo','Cap Rate','Cash-on-Cash','DealScore','Strategy','DOM','Owner','Equity'];
+    const getVal = (p, row) => ({
+      'Purchase Price': fmt$(p.price),
+      'Comp Value': fmt$(p.comp),
+      'Below Comp': `−${p.discount}%`,
+      'Beds / Baths': `${p.beds} bd / ${p.baths} ba`,
+      'Sqft': p.sqft.toLocaleString(),
+      'Year Built': p.year,
+      'Est. Rent/mo': fmt$(p.rent),
+      'Cap Rate': `${p.cap}%`,
+      'Cash-on-Cash': `${p.coc}%`,
+      'DealScore': `${p.score} (${p.grade})`,
+      'Strategy': p.strategy.join(', '),
+      'DOM': `${p.dom} days`,
+      'Owner': p.owner,
+      'Equity': `${p.equity}%`
+    }[row]);
+
+    const props = compareIds.map(id => properties.find(p => p.id === id));
+    grid.innerHTML = `
+      <div></div>
+      ${props.map(p => `
+        <div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;overflow:hidden;">
+          <div style="aspect-ratio:16/9;">${svgImage(p.imgV, p.id)}</div>
+          <div style="padding:12px;">
+            <div style="font-size:16px;font-weight:700;">${fmt$(p.price)}</div>
+            <div style="font-size:12px;color:var(--ink-3);margin:3px 0 8px;">${p.addr}, ${p.city}</div>
+            <span class="score-pill ${p.grade}">${p.grade} · ${p.score}</span>
+          </div>
+        </div>
+      `).join('')}
+      ${rows.map(row => `
+        <div style="display:contents;">
+          <div style="padding:10px 12px;font-size:12px;color:var(--ink-3);font-weight:600;display:flex;align-items:center;border-bottom:1px solid var(--border);">${row}</div>
+          ${props.map(p => `<div style="padding:10px 12px;font-size:13px;font-weight:600;color:var(--ink);border-bottom:1px solid var(--border);background:var(--surface);">${getVal(p, row)}</div>`).join('')}
+        </div>
+      `).join('')}
+    `;
+    grid.style.gridTemplateColumns = `160px repeat(${props.length}, 1fr)`;
+  }
 
   // ===== DARK MODE =====
   function toggleTheme() {
