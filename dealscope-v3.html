@@ -1,0 +1,1463 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>DealScope — Investment Property Intelligence</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #f5f7fa;
+    --surface: #ffffff;
+    --surface-2: #f9fafc;
+    --border: #e2e6ed;
+    --border-dark: #cbd2dc;
+    --ink: #1a2332;
+    --ink-2: #4a5568;
+    --ink-3: #718096;
+    --ink-4: #a0aec0;
+    --primary: #1e5fd9;
+    --primary-dark: #1849b8;
+    --primary-soft: #e8f0ff;
+    --pos: #16a34a;
+    --pos-soft: #dcfce7;
+    --warn: #d97706;
+    --warn-soft: #fef3c7;
+    --neg: #dc2626;
+    --neg-soft: #fee2e2;
+    --tier-a-bg: #16a34a;
+    --tier-b-bg: #2563eb;
+    --tier-c-bg: #d97706;
+    --tier-d-bg: #6b7280;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html, body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: 'Inter', -apple-system, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    font-size: 14px;
+    overflow: hidden;
+    height: 100vh;
+  }
+
+  button { font-family: inherit; cursor: pointer; }
+  input, select { font-family: inherit; }
+
+  /* ===== TOP BAR ===== */
+  .topbar {
+    height: 56px;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    padding: 0 20px;
+    gap: 24px;
+    z-index: 30;
+  }
+
+  .brand {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 800;
+    font-size: 18px;
+    letter-spacing: -0.02em;
+    color: var(--ink);
+  }
+  .brand-mark {
+    width: 28px;
+    height: 28px;
+    background: var(--primary);
+    border-radius: 6px;
+    position: relative;
+    display: grid;
+    place-items: center;
+    color: white;
+    font-weight: 800;
+    font-size: 14px;
+  }
+
+  .nav-tabs {
+    display: flex;
+    gap: 4px;
+    margin-left: 8px;
+  }
+  .nav-tab {
+    padding: 8px 14px;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--ink-2);
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+  .nav-tab:hover { background: var(--surface-2); }
+  .nav-tab.active { background: var(--primary-soft); color: var(--primary); font-weight: 600; }
+
+  .topbar-right {
+    margin-left: auto;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .credits {
+    padding: 6px 12px;
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    font-size: 12px;
+    color: var(--ink-2);
+  }
+  .credits strong { color: var(--ink); }
+  .avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #1e5fd9, #9333ea);
+    color: white;
+    display: grid;
+    place-items: center;
+    font-weight: 600;
+    font-size: 12px;
+  }
+
+  /* ===== SEARCH BAR ===== */
+  .searchbar {
+    height: 52px;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    padding: 0 20px;
+    gap: 10px;
+  }
+
+  .search-box {
+    flex: 0 0 360px;
+    height: 36px;
+    padding: 0 12px 0 36px;
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    font-size: 13px;
+    color: var(--ink);
+    outline: none;
+    transition: all 0.15s;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%23718096' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='11' cy='11' r='8'/%3E%3Cpath d='m21 21-4.35-4.35'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: 12px center;
+  }
+  .search-box:focus {
+    border-color: var(--primary);
+    background-color: var(--surface);
+    box-shadow: 0 0 0 3px rgba(30, 95, 217, 0.1);
+  }
+
+  .filter-btn {
+    height: 36px;
+    padding: 0 12px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    font-size: 13px;
+    color: var(--ink-2);
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    transition: all 0.15s;
+  }
+  .filter-btn:hover { border-color: var(--border-dark); background: var(--surface-2); }
+  .filter-btn.active {
+    background: var(--primary-soft);
+    border-color: var(--primary);
+    color: var(--primary);
+  }
+  .filter-btn .chev { font-size: 9px; opacity: 0.7; }
+  .filter-btn .count {
+    background: var(--primary);
+    color: white;
+    border-radius: 10px;
+    padding: 1px 6px;
+    font-size: 10px;
+    font-weight: 600;
+  }
+
+  .divider { width: 1px; height: 22px; background: var(--border); }
+
+  .save-search {
+    margin-left: auto;
+    height: 36px;
+    padding: 0 14px;
+    background: var(--primary);
+    color: white;
+    border: none;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 600;
+    transition: background 0.15s;
+  }
+  .save-search:hover { background: var(--primary-dark); }
+
+  /* ===== MAIN GRID ===== */
+  .main {
+    display: grid;
+    grid-template-columns: 1fr 1.1fr;
+    height: calc(100vh - 108px);
+  }
+
+  /* ===== LEFT PANEL — RESULTS ===== */
+  .results-panel {
+    background: var(--surface);
+    border-right: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  .results-header {
+    padding: 12px 20px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: var(--surface);
+  }
+  .results-header .count {
+    font-size: 13px;
+    color: var(--ink-2);
+  }
+  .results-header .count strong { color: var(--ink); font-size: 15px; font-weight: 700; }
+  .results-header .controls {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+  }
+  .sort-select {
+    height: 30px;
+    padding: 0 8px;
+    border: 1px solid var(--border);
+    border-radius: 5px;
+    background: var(--surface);
+    font-size: 12px;
+    color: var(--ink-2);
+    cursor: pointer;
+    outline: none;
+  }
+  .view-toggle {
+    display: flex;
+    border: 1px solid var(--border);
+    border-radius: 5px;
+    overflow: hidden;
+  }
+  .view-toggle button {
+    width: 30px;
+    height: 30px;
+    background: var(--surface);
+    border: none;
+    display: grid;
+    place-items: center;
+    color: var(--ink-3);
+    font-size: 12px;
+  }
+  .view-toggle button.active { background: var(--primary); color: white; }
+
+  /* ===== RESULTS TABLE ===== */
+  .results-list {
+    flex: 1;
+    overflow-y: auto;
+  }
+
+  .row {
+    display: flex;
+    padding: 12px 20px;
+    border-bottom: 1px solid var(--border);
+    cursor: pointer;
+    transition: background 0.1s;
+    gap: 14px;
+  }
+  .row:hover { background: var(--surface-2); }
+  .row.selected {
+    background: var(--primary-soft);
+    border-left: 3px solid var(--primary);
+    padding-left: 17px;
+  }
+
+  .row-thumb {
+    flex: 0 0 110px;
+    aspect-ratio: 4/3;
+    border-radius: 6px;
+    overflow: hidden;
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    position: relative;
+  }
+  .row-thumb svg { width: 100%; height: 100%; display: block; }
+  .row-thumb .photo-count {
+    position: absolute;
+    bottom: 4px;
+    right: 4px;
+    background: rgba(0,0,0,0.7);
+    color: white;
+    padding: 1px 5px;
+    border-radius: 3px;
+    font-size: 9px;
+    font-weight: 500;
+  }
+
+  .row-body { flex: 1; min-width: 0; }
+
+  .row-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 2px;
+  }
+  .row-price {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--ink);
+    letter-spacing: -0.01em;
+  }
+  .row-score {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    color: var(--ink-3);
+  }
+  .score-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 2px 7px;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: 700;
+    color: white;
+  }
+  .score-pill.A { background: var(--tier-a-bg); }
+  .score-pill.B { background: var(--tier-b-bg); }
+  .score-pill.C { background: var(--tier-c-bg); }
+  .score-pill.D { background: var(--tier-d-bg); }
+
+  .row-addr {
+    font-size: 13px;
+    color: var(--ink-2);
+    margin-bottom: 6px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .row-specs {
+    font-size: 12px;
+    color: var(--ink-3);
+    margin-bottom: 8px;
+  }
+  .row-specs strong { color: var(--ink-2); font-weight: 600; }
+  .row-specs .dot { margin: 0 6px; color: var(--ink-4); }
+
+  .row-metrics {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+  }
+  .pill {
+    padding: 3px 8px;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: 600;
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    color: var(--ink-2);
+  }
+  .pill .label { color: var(--ink-3); font-weight: 500; margin-right: 3px; }
+  .pill.pos { background: var(--pos-soft); border-color: transparent; color: var(--pos); }
+  .pill.warn { background: var(--warn-soft); border-color: transparent; color: var(--warn); }
+  .pill.neg { background: var(--neg-soft); border-color: transparent; color: var(--neg); }
+
+  /* ===== RIGHT PANEL — MAP ===== */
+  .map-panel {
+    position: relative;
+    background: #e8eef5;
+    overflow: hidden;
+  }
+
+  .map {
+    width: 100%;
+    height: 100%;
+    position: relative;
+    background:
+      radial-gradient(circle at 30% 40%, #d4dfe9 0%, transparent 35%),
+      radial-gradient(circle at 70% 60%, #c8d4df 0%, transparent 40%),
+      linear-gradient(to bottom right, #e8eef5, #d8e2ec);
+  }
+
+  /* Procedural "map" lines as roads */
+  .map::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image:
+      linear-gradient(90deg, transparent 0, transparent 10%, #fff 10%, #fff 10.3%, transparent 10.3%),
+      linear-gradient(90deg, transparent 0, transparent 35%, #fff 35%, #fff 35.4%, transparent 35.4%),
+      linear-gradient(90deg, transparent 0, transparent 62%, #fff 62%, #fff 62.3%, transparent 62.3%),
+      linear-gradient(90deg, transparent 0, transparent 85%, #fff 85%, #fff 85.3%, transparent 85.3%),
+      linear-gradient(0deg, transparent 0, transparent 18%, #fff 18%, #fff 18.4%, transparent 18.4%),
+      linear-gradient(0deg, transparent 0, transparent 45%, #fff 45%, #fff 45.3%, transparent 45.3%),
+      linear-gradient(0deg, transparent 0, transparent 72%, #fff 72%, #fff 72.4%, transparent 72.4%);
+    opacity: 0.6;
+  }
+
+  .map::after {
+    content: '';
+    position: absolute;
+    top: 40%;
+    left: -10%;
+    width: 130%;
+    height: 80px;
+    background: linear-gradient(to right, transparent, #a3c4e0 20%, #a3c4e0 80%, transparent);
+    opacity: 0.6;
+    transform: rotate(-8deg);
+    border-radius: 40px;
+  }
+
+  /* Map pins */
+  .pin {
+    position: absolute;
+    transform: translate(-50%, -100%);
+    cursor: pointer;
+    z-index: 5;
+    transition: all 0.15s;
+  }
+  .pin:hover { z-index: 10; transform: translate(-50%, -100%) scale(1.08); }
+  .pin.selected { z-index: 15; transform: translate(-50%, -100%) scale(1.15); }
+
+  .pin-body {
+    background: var(--surface);
+    border: 2px solid var(--primary);
+    border-radius: 16px;
+    padding: 4px 10px;
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--primary);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+    white-space: nowrap;
+    position: relative;
+  }
+  .pin.selected .pin-body {
+    background: var(--primary);
+    color: white;
+  }
+  .pin-body::after {
+    content: '';
+    position: absolute;
+    bottom: -7px;
+    left: 50%;
+    transform: translateX(-50%) rotate(45deg);
+    width: 10px;
+    height: 10px;
+    background: var(--surface);
+    border-right: 2px solid var(--primary);
+    border-bottom: 2px solid var(--primary);
+  }
+  .pin.selected .pin-body::after { background: var(--primary); }
+
+  .pin.A .pin-body { border-color: var(--tier-a-bg); color: var(--tier-a-bg); }
+  .pin.A .pin-body::after { border-right-color: var(--tier-a-bg); border-bottom-color: var(--tier-a-bg); }
+  .pin.A.selected .pin-body { background: var(--tier-a-bg); color: white; }
+  .pin.A.selected .pin-body::after { background: var(--tier-a-bg); }
+
+  .pin.C .pin-body { border-color: var(--tier-c-bg); color: var(--tier-c-bg); }
+  .pin.C .pin-body::after { border-right-color: var(--tier-c-bg); border-bottom-color: var(--tier-c-bg); }
+
+  /* Map controls */
+  .map-controls {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    z-index: 20;
+  }
+  .map-btn {
+    width: 36px;
+    height: 36px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    display: grid;
+    place-items: center;
+    color: var(--ink-2);
+    font-weight: 600;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+  }
+  .map-btn:hover { background: var(--surface-2); }
+
+  .map-overlay-stats {
+    position: absolute;
+    top: 16px;
+    left: 16px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 12px 16px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    z-index: 20;
+    display: flex;
+    gap: 20px;
+  }
+  .map-stat .label {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--ink-3);
+    font-weight: 600;
+    margin-bottom: 2px;
+  }
+  .map-stat .val {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--ink);
+  }
+  .map-stat .val.pos { color: var(--pos); }
+
+  .map-legend {
+    position: absolute;
+    bottom: 16px;
+    left: 16px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 10px 14px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+    display: flex;
+    gap: 14px;
+    font-size: 11px;
+    z-index: 20;
+  }
+  .legend-item { display: flex; align-items: center; gap: 5px; color: var(--ink-2); }
+  .legend-dot { width: 10px; height: 10px; border-radius: 50%; }
+
+  /* ===== DETAIL DRAWER ===== */
+  .drawer {
+    position: fixed;
+    top: 0;
+    right: -560px;
+    width: 560px;
+    height: 100vh;
+    background: var(--surface);
+    border-left: 1px solid var(--border);
+    box-shadow: -8px 0 32px rgba(0,0,0,0.12);
+    transition: right 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+    z-index: 50;
+    overflow-y: auto;
+  }
+  .drawer.open { right: 0; }
+
+  .drawer-header {
+    position: sticky;
+    top: 0;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 16px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    z-index: 5;
+  }
+  .drawer-close {
+    width: 32px;
+    height: 32px;
+    border-radius: 6px;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    color: var(--ink-2);
+    font-size: 18px;
+  }
+  .drawer-close:hover { background: var(--surface-2); }
+
+  .drawer-actions { display: flex; gap: 8px; }
+  .drawer-action {
+    height: 32px;
+    padding: 0 12px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 600;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    color: var(--ink-2);
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+  .drawer-action:hover { background: var(--surface-2); }
+  .drawer-action.primary {
+    background: var(--primary);
+    border-color: var(--primary);
+    color: white;
+  }
+  .drawer-action.primary:hover { background: var(--primary-dark); }
+
+  .drawer-hero {
+    aspect-ratio: 16/10;
+    background: var(--surface-2);
+    border-bottom: 1px solid var(--border);
+    position: relative;
+    overflow: hidden;
+  }
+  .drawer-hero svg { width: 100%; height: 100%; display: block; }
+  .hero-badge {
+    position: absolute;
+    top: 12px;
+    left: 12px;
+    background: rgba(0,0,0,0.7);
+    color: white;
+    padding: 4px 10px;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: 600;
+  }
+
+  .drawer-body { padding: 20px; }
+
+  .drawer-price {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 6px;
+  }
+  .drawer-price .num {
+    font-size: 32px;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    line-height: 1;
+  }
+  .drawer-price .badge {
+    padding: 5px 10px;
+    background: var(--pos-soft);
+    color: var(--pos);
+    border-radius: 5px;
+    font-size: 12px;
+    font-weight: 600;
+  }
+  .drawer-addr {
+    font-size: 14px;
+    color: var(--ink-2);
+    margin-bottom: 16px;
+  }
+  .drawer-specs {
+    display: flex;
+    gap: 16px;
+    padding: 12px 0;
+    border-top: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 20px;
+    font-size: 13px;
+  }
+  .drawer-specs > div { color: var(--ink-2); }
+  .drawer-specs strong { color: var(--ink); font-weight: 700; font-size: 16px; display: block; }
+  .drawer-specs .label { font-size: 11px; color: var(--ink-3); text-transform: uppercase; letter-spacing: 0.04em; }
+
+  /* Score block */
+  .score-block {
+    background: linear-gradient(135deg, #1e5fd9, #1849b8);
+    color: white;
+    border-radius: 10px;
+    padding: 20px;
+    margin-bottom: 20px;
+    position: relative;
+    overflow: hidden;
+  }
+  .score-block::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    right: -20%;
+    width: 200px;
+    height: 200px;
+    background: radial-gradient(circle, rgba(255,255,255,0.15), transparent 60%);
+  }
+  .score-block .label {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    opacity: 0.8;
+    margin-bottom: 4px;
+  }
+  .score-block .num {
+    font-size: 56px;
+    font-weight: 800;
+    line-height: 1;
+    letter-spacing: -0.03em;
+  }
+  .score-block .num .out { font-size: 20px; opacity: 0.6; font-weight: 500; }
+  .score-block .desc {
+    font-size: 13px;
+    opacity: 0.9;
+    margin-top: 6px;
+    position: relative;
+  }
+
+  /* Section */
+  .section { margin-bottom: 24px; }
+  .section h4 {
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--ink-3);
+    font-weight: 700;
+    margin-bottom: 10px;
+  }
+
+  /* Score components */
+  .components {
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 14px 16px;
+  }
+  .comp-row {
+    display: grid;
+    grid-template-columns: 140px 1fr 36px;
+    align-items: center;
+    gap: 12px;
+    padding: 8px 0;
+    border-bottom: 1px solid var(--border);
+    font-size: 13px;
+  }
+  .comp-row:last-child { border-bottom: none; }
+  .comp-label { color: var(--ink-2); font-weight: 500; }
+  .comp-bar {
+    height: 6px;
+    background: #e2e8f0;
+    border-radius: 3px;
+    overflow: hidden;
+  }
+  .comp-fill {
+    height: 100%;
+    background: var(--primary);
+    border-radius: 3px;
+  }
+  .comp-fill.high { background: var(--pos); }
+  .comp-fill.low { background: var(--warn); }
+  .comp-num {
+    text-align: right;
+    font-weight: 700;
+    color: var(--ink);
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* Data table */
+  .data-table {
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    overflow: hidden;
+  }
+  .data-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 10px 14px;
+    font-size: 13px;
+    border-bottom: 1px solid var(--border);
+  }
+  .data-row:last-child { border-bottom: none; }
+  .data-row:nth-child(even) { background: var(--surface-2); }
+  .data-row .k { color: var(--ink-2); }
+  .data-row .v { font-weight: 600; color: var(--ink); font-variant-numeric: tabular-nums; }
+  .data-row .v.pos { color: var(--pos); }
+  .data-row .v.neg { color: var(--neg); }
+
+  /* Insights */
+  .insight {
+    display: flex;
+    gap: 10px;
+    padding: 10px 12px;
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--primary);
+    border-radius: 6px;
+    margin-bottom: 8px;
+    font-size: 13px;
+    line-height: 1.5;
+    color: var(--ink-2);
+  }
+  .insight.pos { border-left-color: var(--pos); }
+  .insight.warn { border-left-color: var(--warn); }
+  .insight.neg { border-left-color: var(--neg); }
+  .insight-icon {
+    flex: 0 0 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: var(--primary);
+    color: white;
+    display: grid;
+    place-items: center;
+    font-size: 11px;
+    font-weight: 700;
+  }
+  .insight.pos .insight-icon { background: var(--pos); }
+  .insight.warn .insight-icon { background: var(--warn); }
+  .insight.neg .insight-icon { background: var(--neg); }
+
+  /* Comps */
+  .comps-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 12px;
+  }
+  .comps-table th {
+    text-align: left;
+    padding: 8px 10px;
+    background: var(--surface-2);
+    color: var(--ink-3);
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 10px;
+    letter-spacing: 0.05em;
+    border-bottom: 1px solid var(--border);
+  }
+  .comps-table td {
+    padding: 9px 10px;
+    border-bottom: 1px solid var(--border);
+    color: var(--ink-2);
+  }
+  .comps-table td.num { font-variant-numeric: tabular-nums; font-weight: 600; color: var(--ink); text-align: right; }
+
+  /* ===== SCROLLBAR ===== */
+  ::-webkit-scrollbar { width: 8px; height: 8px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--border-dark); border-radius: 4px; }
+  ::-webkit-scrollbar-thumb:hover { background: var(--ink-4); }
+
+  /* ===== RESPONSIVE ===== */
+  @media (max-width: 900px) {
+    .main { grid-template-columns: 1fr; }
+    .map-panel { display: none; }
+    .nav-tabs { display: none; }
+    .drawer { width: 100%; right: -100%; }
+    .drawer.open { right: 0; }
+    .search-box { flex: 1; }
+  }
+</style>
+</head>
+<body>
+
+<!-- TOP BAR -->
+<header class="topbar">
+  <div class="brand">
+    <div class="brand-mark">D</div>
+    DealScope
+  </div>
+  <nav class="nav-tabs">
+    <button class="nav-tab active">Properties</button>
+    <button class="nav-tab">Lists</button>
+    <button class="nav-tab">Markets</button>
+    <button class="nav-tab">Comps</button>
+    <button class="nav-tab">Reports</button>
+  </nav>
+  <div class="topbar-right">
+    <div class="credits">Credits: <strong>847</strong> / 1,000</div>
+    <button class="filter-btn">Upgrade</button>
+    <div class="avatar">BJ</div>
+  </div>
+</header>
+
+<!-- SEARCH BAR -->
+<div class="searchbar">
+  <input type="text" class="search-box" id="search" placeholder="Search address, city, ZIP, or county..."/>
+
+  <button class="filter-btn active" data-filter-toggle>
+    Filters <span class="count">4</span>
+  </button>
+
+  <button class="filter-btn">Price <span class="chev">▾</span></button>
+  <button class="filter-btn">Beds/Baths <span class="chev">▾</span></button>
+  <button class="filter-btn">Cap Rate <span class="chev">▾</span></button>
+  <button class="filter-btn">Strategy <span class="chev">▾</span></button>
+  <button class="filter-btn">DealScore <span class="chev">▾</span></button>
+  <button class="filter-btn">Status <span class="chev">▾</span></button>
+  <button class="filter-btn">More <span class="chev">▾</span></button>
+
+  <div class="divider"></div>
+
+  <button class="save-search">+ Save Search</button>
+</div>
+
+<!-- MAIN -->
+<main class="main">
+
+  <!-- LEFT: RESULTS LIST -->
+  <section class="results-panel">
+    <div class="results-header">
+      <div class="count"><strong id="resultCount">12</strong> properties · <span style="color: var(--pos);">9 above 75 DealScore</span></div>
+      <div class="controls">
+        <select class="sort-select" id="sortBy">
+          <option value="score">Sort: DealScore (high)</option>
+          <option value="price-asc">Price (low → high)</option>
+          <option value="price-desc">Price (high → low)</option>
+          <option value="cap">Cap rate</option>
+          <option value="discount">% below comp</option>
+          <option value="dom">Days on market</option>
+        </select>
+        <div class="view-toggle">
+          <button class="active" title="List">≡</button>
+          <button title="Grid">▦</button>
+        </div>
+      </div>
+    </div>
+    <div class="results-list" id="resultsList"></div>
+  </section>
+
+  <!-- RIGHT: MAP -->
+  <section class="map-panel">
+    <div class="map" id="map">
+      <div class="map-overlay-stats">
+        <div class="map-stat">
+          <div class="label">Median DealScore</div>
+          <div class="val pos">82</div>
+        </div>
+        <div class="map-stat">
+          <div class="label">Avg cap rate</div>
+          <div class="val">7.4%</div>
+        </div>
+        <div class="map-stat">
+          <div class="label">Median price</div>
+          <div class="val">$342k</div>
+        </div>
+      </div>
+
+      <div class="map-controls">
+        <button class="map-btn">+</button>
+        <button class="map-btn">−</button>
+        <button class="map-btn" title="Locate">⊙</button>
+        <button class="map-btn" title="Layers">▦</button>
+      </div>
+
+      <div class="map-legend">
+        <span style="font-weight: 600; color: var(--ink); margin-right: 4px;">DealScore:</span>
+        <div class="legend-item"><span class="legend-dot" style="background: var(--tier-a-bg)"></span>85+ (A)</div>
+        <div class="legend-item"><span class="legend-dot" style="background: var(--tier-b-bg)"></span>70-84 (B)</div>
+        <div class="legend-item"><span class="legend-dot" style="background: var(--tier-c-bg)"></span>55-69 (C)</div>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<!-- DETAIL DRAWER -->
+<aside class="drawer" id="drawer">
+  <div class="drawer-header">
+    <button class="drawer-close" onclick="closeDrawer()">×</button>
+    <div class="drawer-actions">
+      <button class="drawer-action">☆ Save</button>
+      <button class="drawer-action">+ List</button>
+      <button class="drawer-action">⤓ Export</button>
+      <button class="drawer-action primary">Skip Trace</button>
+    </div>
+  </div>
+  <div id="drawerContent"></div>
+</aside>
+
+<script>
+  // ===== DATA =====
+  const properties = [
+    {
+      id: 1, addr: '3304 Hawthorne Ave', city: 'Cleveland', state: 'OH', zip: '44109',
+      price: 128000, comp: 152000, sqft: 1420, lot: 0.14, beds: 3, baths: 2, year: 1924, type: 'SFR',
+      rent: 1650, taxes: 2200, insurance: 950, hoa: 0,
+      score: 94, grade: 'A', strategy: ['cashflow', 'brrrr'], status: 'Active',
+      cap: 11.8, coc: 18.4, dom: 8, discount: 15.8,
+      mapX: 78, mapY: 22, imgV: 0,
+      owner: 'Marcus L. Reeves', ownerType: 'Individual', equity: 78,
+      tagline: 'Top cash flow · BRRRR',
+      insights: [
+        { type: 'pos', text: 'Cap rate of 11.8% places this in the top decile for SFR rentals nationwide.' },
+        { type: 'pos', text: '$18k cosmetic rehab could push rent +$220/mo per local comp analysis.' },
+        { type: 'warn', text: 'Tertiary market — exit liquidity slower than Tier 1 metros.' }
+      ]
+    },
+    {
+      id: 2, addr: '2847 Maple Creek Dr', city: 'Provo', state: 'UT', zip: '84604',
+      price: 425000, comp: 478000, sqft: 2240, lot: 0.22, beds: 4, baths: 3, year: 2008, type: 'SFR',
+      rent: 2850, taxes: 3100, insurance: 1400, hoa: 0,
+      score: 91, grade: 'A', strategy: ['undervalued', 'brrrr'], status: 'Active',
+      cap: 7.4, coc: 11.2, dom: 47, discount: 11.1,
+      mapX: 18, mapY: 58, imgV: 1,
+      owner: 'Thornton Family Trust', ownerType: 'Trust', equity: 64,
+      tagline: 'BRRRR candidate',
+      insights: [
+        { type: 'pos', text: '11% below 90-day Provo comps avg ($478k for similar inventory).' },
+        { type: 'pos', text: '$35k rehab targets ARV $520k — BRRRR refi nets approx $78k cash-out.' },
+        { type: 'warn', text: '47 DOM — seller likely accepts 5-8% under ask.' }
+      ]
+    },
+    {
+      id: 3, addr: '1142 W 800 S', city: 'Salt Lake City', state: 'UT', zip: '84104',
+      price: 358000, comp: 392000, sqft: 1680, lot: 0.11, beds: 3, baths: 2, year: 1978, type: 'SFR',
+      rent: 2400, taxes: 2400, insurance: 1100, hoa: 0,
+      score: 87, grade: 'A', strategy: ['cashflow', 'undervalued'], status: 'Active',
+      cap: 8.1, coc: 13.4, dom: 12, discount: 8.7,
+      mapX: 14, mapY: 48, imgV: 2,
+      owner: 'Jeremy Vasquez', ownerType: 'Individual', equity: 82,
+      tagline: 'Cash flow · ADU potential',
+      insights: [
+        { type: 'pos', text: 'Cap rate 8.1% — top decile for SLC metro.' },
+        { type: 'pos', text: 'Walkout basement separable for ADU income (+$800/mo potential).' },
+        { type: 'warn', text: 'Roof est 18+ years — inspection priority.' }
+      ]
+    },
+    {
+      id: 4, addr: '906 Sycamore Pl', city: 'Houston', state: 'TX', zip: '77008',
+      price: 285000, comp: 318000, sqft: 1560, lot: 0.13, beds: 3, baths: 2, year: 1962, type: 'SFR',
+      rent: 2050, taxes: 5400, insurance: 1600, hoa: 0,
+      score: 84, grade: 'A', strategy: ['flip', 'brrrr'], status: 'Active',
+      cap: 6.1, coc: 8.3, dom: 64, discount: 10.4,
+      mapX: 42, mapY: 78, imgV: 3,
+      owner: 'Estate of D. Patel', ownerType: 'Estate', equity: 100,
+      tagline: 'Flip candidate',
+      insights: [
+        { type: 'pos', text: 'Heights-adjacent — $42k rehab targets ARV $385k (est. $58k profit).' },
+        { type: 'pos', text: 'Seller motivated: relisted 2x, owner-occupied vacant.' },
+        { type: 'neg', text: 'Foundation inspection recommended (1960s Houston clay).' }
+      ]
+    },
+    {
+      id: 5, addr: '233 W 4500 S', city: 'Murray', state: 'UT', zip: '84107',
+      price: 445000, comp: 472000, sqft: 2110, lot: 0.18, beds: 4, baths: 2, year: 1979, type: 'SFR',
+      rent: 2750, taxes: 2900, insurance: 1300, hoa: 0,
+      score: 83, grade: 'A', strategy: ['cashflow', 'brrrr'], status: 'Active',
+      cap: 6.7, coc: 9.5, dom: 24, discount: 5.7,
+      mapX: 16, mapY: 52, imgV: 0,
+      owner: 'Patricia Ann Holm', ownerType: 'Individual', equity: 55,
+      tagline: 'Basement ADU ready',
+      insights: [
+        { type: 'pos', text: 'Walkout basement turnkey for legal ADU conversion (+$1,100/mo).' },
+        { type: 'pos', text: 'TRAX light rail 0.4mi — premium tenant draw.' },
+        { type: 'warn', text: 'Original kitchen/baths — $25k cosmetic refresh recommended.' }
+      ]
+    },
+    {
+      id: 6, addr: '7712 Pinewood Ct', city: 'Charlotte', state: 'NC', zip: '28210',
+      price: 342000, comp: 365000, sqft: 1920, lot: 0.16, beds: 4, baths: 2, year: 1995, type: 'SFR',
+      rent: 2200, taxes: 2600, insurance: 1200, hoa: 240,
+      score: 81, grade: 'B', strategy: ['cashflow', 'undervalued'], status: 'Active',
+      cap: 6.9, coc: 9.8, dom: 22, discount: 6.3,
+      mapX: 64, mapY: 56, imgV: 1,
+      owner: 'M&K Rentals LLC', ownerType: 'LLC', equity: 38,
+      tagline: 'Growth market',
+      insights: [
+        { type: 'pos', text: 'Charlotte metro: top 5 net migration in US (2025).' },
+        { type: 'pos', text: 'Below comps by $23k; recent comp sold $371k in 14 days.' },
+        { type: 'warn', text: 'HOA $240/mo — modest drag on cash flow.' }
+      ]
+    },
+    {
+      id: 7, addr: '1287 Birch Hollow', city: 'Ogden', state: 'UT', zip: '84403',
+      price: 312000, comp: 339000, sqft: 1780, lot: 0.15, beds: 3, baths: 2, year: 1988, type: 'SFR',
+      rent: 2100, taxes: 2200, insurance: 1050, hoa: 0,
+      score: 79, grade: 'B', strategy: ['cashflow'], status: 'Active',
+      cap: 7.0, coc: 10.1, dom: 19, discount: 8.0,
+      mapX: 12, mapY: 38, imgV: 2,
+      owner: 'Robert & Susan King', ownerType: 'Individual', equity: 71,
+      tagline: 'Cash flow',
+      insights: [
+        { type: 'pos', text: 'Ogden rental demand strong — Hill AFB proximity drives tenant base.' },
+        { type: 'pos', text: 'Below local cap rate floor (avg 6.2% for area).' },
+        { type: 'warn', text: 'HVAC at end-of-life per listing photos.' }
+      ]
+    },
+    {
+      id: 8, addr: '8821 Brookhollow Ln', city: 'Austin', state: 'TX', zip: '78745',
+      price: 489000, comp: 525000, sqft: 2010, lot: 0.18, beds: 3, baths: 2, year: 2002, type: 'SFR',
+      rent: 2950, taxes: 8800, insurance: 1800, hoa: 0,
+      score: 78, grade: 'B', strategy: ['undervalued'], status: 'Price Cut',
+      cap: 5.2, coc: 7.1, dom: 89, discount: 6.9,
+      mapX: 40, mapY: 72, imgV: 3,
+      owner: 'Thompson Holdings LP', ownerType: 'LP', equity: 45,
+      tagline: 'Undervalued · 2 price cuts',
+      insights: [
+        { type: 'pos', text: '$36k below comp — price reduced twice in last 60 days.' },
+        { type: 'neg', text: 'TX property taxes ($8.8k/yr) compress cash flow significantly.' },
+        { type: 'warn', text: 'Austin market cooling — model 1-3% near-term softness.' }
+      ]
+    },
+    {
+      id: 9, addr: '442 E 11th St', city: 'Jacksonville', state: 'FL', zip: '32206',
+      price: 178000, comp: 198000, sqft: 1320, lot: 0.12, beds: 3, baths: 1, year: 1948, type: 'SFR',
+      rent: 1750, taxes: 1900, insurance: 2400, hoa: 0,
+      score: 76, grade: 'B', strategy: ['brrrr', 'cashflow'], status: 'Active',
+      cap: 9.2, coc: 14.1, dom: 41, discount: 10.1,
+      mapX: 70, mapY: 68, imgV: 0,
+      owner: 'Vacant / Bank Owned', ownerType: 'REO', equity: 100,
+      tagline: 'Value-add · bath conversion',
+      insights: [
+        { type: 'pos', text: 'Add 2nd bath → rent comp jumps to $1,950 (+$200/mo).' },
+        { type: 'warn', text: 'Insurance climbing 9% YoY in zip — model conservatively.' },
+        { type: 'pos', text: 'Springfield neighborhood gentrification trajectory accelerating.' }
+      ]
+    },
+    {
+      id: 10, addr: '6620 Willowbrook Ln', city: 'Raleigh', state: 'NC', zip: '27606',
+      price: 398000, comp: 421000, sqft: 2080, lot: 0.20, beds: 4, baths: 3, year: 2011, type: 'SFR',
+      rent: 2650, taxes: 3200, insurance: 1300, hoa: 180,
+      score: 80, grade: 'B', strategy: ['cashflow', 'undervalued'], status: 'Active',
+      cap: 6.4, coc: 9.0, dom: 16, discount: 5.5,
+      mapX: 66, mapY: 60, imgV: 1,
+      owner: 'Daniel & Rebecca Wu', ownerType: 'Individual', equity: 52,
+      tagline: 'Growth market',
+      insights: [
+        { type: 'pos', text: 'Research Triangle Park commute zone — durable rental demand.' },
+        { type: 'pos', text: '5.5% under comps; sellers relocating, motivated.' },
+        { type: 'warn', text: 'HOA $180/mo — modest drag.' }
+      ]
+    },
+    {
+      id: 11, addr: '15 Oakridge Dr', city: 'Columbus', state: 'OH', zip: '43223',
+      price: 154000, comp: 169000, sqft: 1140, lot: 0.13, beds: 2, baths: 1, year: 1955, type: 'SFR',
+      rent: 1450, taxes: 1800, insurance: 850, hoa: 0,
+      score: 72, grade: 'B', strategy: ['cashflow'], status: 'Active',
+      cap: 9.0, coc: 13.2, dom: 28, discount: 8.9,
+      mapX: 76, mapY: 28, imgV: 2,
+      owner: 'Heritage Rentals LLC', ownerType: 'LLC', equity: 60,
+      tagline: 'Starter rental',
+      insights: [
+        { type: 'pos', text: 'Columbus Intel campus 12mi — long-term appreciation tailwind.' },
+        { type: 'warn', text: 'Smaller floorplan limits tenant pool to singles/couples.' }
+      ]
+    },
+    {
+      id: 12, addr: '524 NE 64th St', city: 'Miami', state: 'FL', zip: '33138',
+      price: 612000, comp: 645000, sqft: 1840, lot: 0.14, beds: 3, baths: 2, year: 1956, type: 'SFR',
+      rent: 4200, taxes: 7200, insurance: 5800, hoa: 0,
+      score: 73, grade: 'B', strategy: ['cashflow', 'undervalued'], status: 'Active',
+      cap: 6.4, coc: 8.9, dom: 31, discount: 5.1,
+      mapX: 74, mapY: 82, imgV: 3,
+      owner: 'Costa Brava Investments', ownerType: 'LLC', equity: 33,
+      tagline: 'STR potential',
+      insights: [
+        { type: 'pos', text: 'STR zoning allowed — potential $7.5k/mo gross.' },
+        { type: 'neg', text: 'Insurance ($5.8k/yr) and rising — hurricane exposure.' },
+        { type: 'pos', text: 'Lot allows detached ADU per current zoning.' }
+      ]
+    }
+  ];
+
+  // ===== SVG GENERATOR =====
+  function svgImage(variant, id, w = 220, h = 165) {
+    const palettes = [
+      { sky: '#a8c5e0', wall: '#c4a584', roof: '#7a3e2c', trim: '#3d3833', tree: '#5a6e3d', ground: '#94a37a' },
+      { sky: '#bcc8d0', wall: '#9eaab0', roof: '#3d4a5c', trim: '#1f2937', tree: '#4a5c3e', ground: '#7a8a78' },
+      { sky: '#b8c8d8', wall: '#d8c8a8', roof: '#5a3826', trim: '#2c2218', tree: '#6b7a4a', ground: '#a89878' },
+      { sky: '#a5b8c5', wall: '#b8a890', roof: '#2c3848', trim: '#0f1620', tree: '#3d5a4a', ground: '#8a9888' }
+    ];
+    const p = palettes[variant % 4];
+    const o = (id * 11) % 20;
+    return `
+      <svg viewBox="0 0 320 240" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid slice">
+        <rect width="320" height="240" fill="${p.sky}"/>
+        <ellipse cx="${40 + o}" cy="180" rx="60" ry="20" fill="${p.tree}" opacity="0.6"/>
+        <ellipse cx="${260 - o}" cy="184" rx="80" ry="22" fill="${p.tree}" opacity="0.7"/>
+
+        <!-- ground -->
+        <rect x="0" y="185" width="320" height="55" fill="${p.ground}"/>
+
+        <!-- driveway -->
+        <polygon points="${140 + o/2},185 ${180 + o/2},185 ${200 + o/2},240 ${120 + o/2},240" fill="#9a9a8a" opacity="0.6"/>
+
+        <!-- house -->
+        <rect x="${88 + o/2}" y="120" width="144" height="68" fill="${p.wall}"/>
+        <!-- shadow line -->
+        <rect x="${88 + o/2}" y="120" width="144" height="3" fill="#000" opacity="0.15"/>
+
+        <!-- roof -->
+        <polygon points="${88 + o/2},120 ${160 + o/2},75 ${232 + o/2},120" fill="${p.roof}"/>
+        <polygon points="${88 + o/2},120 ${160 + o/2},75 ${160 + o/2},78 ${88 + o/2},123" fill="#000" opacity="0.15"/>
+
+        <!-- chimney -->
+        <rect x="${195 + o/2}" y="83" width="11" height="22" fill="${p.roof}"/>
+
+        <!-- left window -->
+        <rect x="${110 + o/2}" y="135" width="22" height="26" fill="#cce4f0"/>
+        <rect x="${110 + o/2}" y="135" width="22" height="26" fill="none" stroke="${p.trim}" stroke-width="1.5"/>
+        <line x1="${121 + o/2}" y1="135" x2="${121 + o/2}" y2="161" stroke="${p.trim}" stroke-width="1"/>
+        <line x1="${110 + o/2}" y1="148" x2="${132 + o/2}" y2="148" stroke="${p.trim}" stroke-width="1"/>
+
+        <!-- right window -->
+        <rect x="${188 + o/2}" y="135" width="22" height="26" fill="#cce4f0"/>
+        <rect x="${188 + o/2}" y="135" width="22" height="26" fill="none" stroke="${p.trim}" stroke-width="1.5"/>
+        <line x1="${199 + o/2}" y1="135" x2="${199 + o/2}" y2="161" stroke="${p.trim}" stroke-width="1"/>
+        <line x1="${188 + o/2}" y1="148" x2="${210 + o/2}" y2="148" stroke="${p.trim}" stroke-width="1"/>
+
+        <!-- door -->
+        <rect x="${150 + o/2}" y="148" width="20" height="40" fill="${p.trim}"/>
+        <rect x="${150 + o/2}" y="148" width="20" height="40" fill="none" stroke="${p.roof}" stroke-width="1"/>
+        <circle cx="${165 + o/2}" cy="168" r="1.2" fill="#d4a04a"/>
+
+        <!-- bush -->
+        <ellipse cx="${130 + o/2}" cy="188" rx="10" ry="6" fill="${p.tree}" opacity="0.85"/>
+        <ellipse cx="${190 + o/2}" cy="188" rx="10" ry="6" fill="${p.tree}" opacity="0.85"/>
+
+        <!-- foreground tree -->
+        <rect x="42" y="160" width="5" height="28" fill="${p.trim}"/>
+        <circle cx="44" cy="158" r="16" fill="${p.tree}"/>
+      </svg>
+    `;
+  }
+
+  // ===== UTILITIES =====
+  const fmt$ = (n) => '$' + n.toLocaleString();
+  const fmt$k = (n) => n >= 1000 ? '$' + Math.round(n/1000) + 'k' : '$' + n;
+
+  // ===== STATE =====
+  let selectedId = null;
+  let sortBy = 'score';
+  let searchQuery = '';
+
+  // ===== RENDER LIST =====
+  function renderList() {
+    let sorted = [...properties];
+    if (searchQuery) {
+      sorted = sorted.filter(p => `${p.addr} ${p.city} ${p.state} ${p.zip}`.toLowerCase().includes(searchQuery));
+    }
+    sorted.sort((a, b) => {
+      switch (sortBy) {
+        case 'price-asc': return a.price - b.price;
+        case 'price-desc': return b.price - a.price;
+        case 'cap': return b.cap - a.cap;
+        case 'discount': return b.discount - a.discount;
+        case 'dom': return b.dom - a.dom;
+        default: return b.score - a.score;
+      }
+    });
+
+    document.getElementById('resultCount').textContent = sorted.length;
+
+    document.getElementById('resultsList').innerHTML = sorted.map(p => `
+      <div class="row ${selectedId === p.id ? 'selected' : ''}" data-id="${p.id}">
+        <div class="row-thumb">
+          ${svgImage(p.imgV, p.id)}
+          <div class="photo-count">+24</div>
+        </div>
+        <div class="row-body">
+          <div class="row-top">
+            <div class="row-price">${fmt$(p.price)}</div>
+            <div class="row-score">
+              <span class="score-pill ${p.grade}">${p.grade} · ${p.score}</span>
+            </div>
+          </div>
+          <div class="row-addr">${p.addr}, ${p.city}, ${p.state} ${p.zip}</div>
+          <div class="row-specs">
+            <strong>${p.beds}</strong> bd<span class="dot">·</span><strong>${p.baths}</strong> ba<span class="dot">·</span><strong>${p.sqft.toLocaleString()}</strong> sqft<span class="dot">·</span>Built <strong>${p.year}</strong><span class="dot">·</span>${p.type}
+          </div>
+          <div class="row-metrics">
+            <span class="pill pos"><span class="label">−</span>${p.discount}% comp</span>
+            <span class="pill ${p.cap >= 8 ? 'pos' : p.cap >= 6 ? '' : 'warn'}"><span class="label">Cap</span>${p.cap}%</span>
+            <span class="pill ${p.coc >= 10 ? 'pos' : ''}"><span class="label">CoC</span>${p.coc}%</span>
+            <span class="pill"><span class="label">Rent</span>${fmt$k(p.rent)}</span>
+            <span class="pill"><span class="label">DOM</span>${p.dom}</span>
+            ${p.status === 'Price Cut' ? '<span class="pill warn">Price Cut</span>' : ''}
+          </div>
+        </div>
+      </div>
+    `).join('');
+
+    document.querySelectorAll('.row').forEach(r => {
+      r.addEventListener('click', () => {
+        selectedId = parseInt(r.dataset.id);
+        renderList();
+        renderMap();
+        openDrawer();
+      });
+    });
+  }
+
+  // ===== RENDER MAP =====
+  function renderMap() {
+    const map = document.getElementById('map');
+    // Remove existing pins
+    map.querySelectorAll('.pin').forEach(p => p.remove());
+
+    properties.forEach(p => {
+      const pin = document.createElement('div');
+      pin.className = `pin ${p.grade} ${selectedId === p.id ? 'selected' : ''}`;
+      pin.style.left = p.mapX + '%';
+      pin.style.top = p.mapY + '%';
+      pin.dataset.id = p.id;
+      pin.innerHTML = `<div class="pin-body">${fmt$k(p.price)}</div>`;
+      pin.addEventListener('click', () => {
+        selectedId = p.id;
+        renderList();
+        renderMap();
+        openDrawer();
+        // scroll into view
+        const row = document.querySelector(`.row[data-id="${p.id}"]`);
+        if (row) row.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      });
+      map.appendChild(pin);
+    });
+  }
+
+  // ===== DRAWER =====
+  function openDrawer() {
+    const p = properties.find(x => x.id === selectedId);
+    if (!p) return;
+
+    const monthlyPI = Math.round(p.price * 0.8 * 0.0072);
+    const monthlyExp = Math.round((p.taxes + p.insurance) / 12 + p.hoa);
+    const monthlyCF = p.rent - monthlyPI - monthlyExp;
+    const annualCF = monthlyCF * 12;
+    const downPayment = p.price * 0.2;
+    const closingCosts = Math.round(p.price * 0.03);
+    const initialCash = downPayment + closingCosts;
+
+    const components = [
+      { label: 'Undervaluation', val: Math.min(100, Math.round(p.discount * 7 + 25)) },
+      { label: 'Cash flow', val: Math.min(100, Math.round(p.cap * 9 + 12)) },
+      { label: 'Cash-on-cash', val: Math.min(100, Math.round(p.coc * 5.5 + 20)) },
+      { label: 'Value-add upside', val: 60 + ((p.id * 7) % 35) },
+      { label: 'Market momentum', val: 55 + ((p.id * 11) % 40) },
+      { label: 'Condition/risk', val: 50 + ((p.id * 13) % 45) }
+    ];
+
+    const comps = [
+      { addr: `${p.addr.split(' ')[0] - 12 || 1100} ${p.addr.split(' ').slice(1).join(' ')}`, price: Math.round(p.comp * 0.98), sqft: p.sqft - 80, days: 14, sold: true },
+      { addr: `${(parseInt(p.addr) || 1000) + 47} ${p.addr.split(' ').slice(1).join(' ')}`, price: Math.round(p.comp * 1.04), sqft: p.sqft + 120, days: 22, sold: true },
+      { addr: `${(parseInt(p.addr) || 1000) - 22} ${p.addr.split(' ').slice(1).join(' ')}`, price: Math.round(p.comp * 0.99), sqft: p.sqft - 40, days: 18, sold: true },
+      { addr: `${(parseInt(p.addr) || 1000) + 88} ${p.addr.split(' ').slice(1).join(' ')}`, price: Math.round(p.comp * 1.01), sqft: p.sqft + 60, days: 31, sold: true }
+    ];
+
+    document.getElementById('drawerContent').innerHTML = `
+      <div class="drawer-hero">
+        ${svgImage(p.imgV, p.id, 560, 350)}
+        <div class="hero-badge">${p.status} · ${p.dom} DOM</div>
+      </div>
+
+      <div class="drawer-body">
+        <div class="drawer-price">
+          <span class="num">${fmt$(p.price)}</span>
+          <span class="badge">−${p.discount}% below comp</span>
+        </div>
+        <div class="drawer-addr">${p.addr}, ${p.city}, ${p.state} ${p.zip}</div>
+
+        <div class="drawer-specs">
+          <div><span class="label">Beds</span><strong>${p.beds}</strong></div>
+          <div><span class="label">Baths</span><strong>${p.baths}</strong></div>
+          <div><span class="label">Sqft</span><strong>${p.sqft.toLocaleString()}</strong></div>
+          <div><span class="label">Lot</span><strong>${p.lot} ac</strong></div>
+          <div><span class="label">Year</span><strong>${p.year}</strong></div>
+          <div><span class="label">Type</span><strong>${p.type}</strong></div>
+        </div>
+
+        <div class="score-block">
+          <div class="label">DealScore™</div>
+          <div class="num">${p.score}<span class="out"> / 100</span></div>
+          <div class="desc">Grade ${p.grade} · ${p.tagline}</div>
+        </div>
+
+        <div class="section">
+          <h4>Score Components</h4>
+          <div class="components">
+            ${components.map(c => `
+              <div class="comp-row">
+                <div class="comp-label">${c.label}</div>
+                <div class="comp-bar"><div class="comp-fill ${c.val >= 75 ? 'high' : c.val >= 50 ? '' : 'low'}" style="width: ${c.val}%"></div></div>
+                <div class="comp-num">${c.val}</div>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+
+        <div class="section">
+          <h4>Investment Analysis</h4>
+          <div class="data-table">
+            <div class="data-row"><span class="k">Purchase price</span><span class="v">${fmt$(p.price)}</span></div>
+            <div class="data-row"><span class="k">Down payment (20%)</span><span class="v">${fmt$(downPayment)}</span></div>
+            <div class="data-row"><span class="k">Closing costs (est. 3%)</span><span class="v">${fmt$(closingCosts)}</span></div>
+            <div class="data-row"><span class="k">Initial cash required</span><span class="v">${fmt$(initialCash)}</span></div>
+            <div class="data-row"><span class="k">Est. monthly rent</span><span class="v">${fmt$(p.rent)}</span></div>
+            <div class="data-row"><span class="k">P&I (30yr @ 7%)</span><span class="v">−${fmt$(monthlyPI)}</span></div>
+            <div class="data-row"><span class="k">Property tax (monthly)</span><span class="v">−${fmt$(Math.round(p.taxes/12))}</span></div>
+            <div class="data-row"><span class="k">Insurance (monthly)</span><span class="v">−${fmt$(Math.round(p.insurance/12))}</span></div>
+            ${p.hoa > 0 ? `<div class="data-row"><span class="k">HOA</span><span class="v">−${fmt$(p.hoa)}</span></div>` : ''}
+            <div class="data-row"><span class="k"><strong>Net monthly cash flow</strong></span><span class="v ${monthlyCF > 0 ? 'pos' : 'neg'}">${monthlyCF > 0 ? '+' : ''}${fmt$(monthlyCF)}</span></div>
+            <div class="data-row"><span class="k">Annual cash flow</span><span class="v ${annualCF > 0 ? 'pos' : 'neg'}">${annualCF > 0 ? '+' : ''}${fmt$(annualCF)}</span></div>
+            <div class="data-row"><span class="k">Cap rate</span><span class="v">${p.cap}%</span></div>
+            <div class="data-row"><span class="k">Cash-on-cash return</span><span class="v ${p.coc >= 10 ? 'pos' : ''}">${p.coc}%</span></div>
+          </div>
+        </div>
+
+        <div class="section">
+          <h4>AI Insights</h4>
+          ${p.insights.map(ins => `
+            <div class="insight ${ins.type}">
+              <span class="insight-icon">${ins.type === 'pos' ? '↑' : ins.type === 'warn' ? '!' : '↓'}</span>
+              <span>${ins.text}</span>
+            </div>
+          `).join('')}
+        </div>
+
+        <div class="section">
+          <h4>Owner & Property Records</h4>
+          <div class="data-table">
+            <div class="data-row"><span class="k">Owner</span><span class="v">${p.owner}</span></div>
+            <div class="data-row"><span class="k">Owner type</span><span class="v">${p.ownerType}</span></div>
+            <div class="data-row"><span class="k">Est. equity</span><span class="v">${p.equity}%</span></div>
+            <div class="data-row"><span class="k">Tax assessment</span><span class="v">${fmt$(Math.round(p.price * 0.85))}</span></div>
+            <div class="data-row"><span class="k">Last sale (est)</span><span class="v">${fmt$(Math.round(p.price * 0.62))}</span></div>
+          </div>
+        </div>
+
+        <div class="section">
+          <h4>Recent Comparables</h4>
+          <table class="comps-table">
+            <thead><tr><th>Address</th><th style="text-align: right;">Sold</th><th style="text-align: right;">Sqft</th><th style="text-align: right;">DOM</th></tr></thead>
+            <tbody>
+              ${comps.map(c => `
+                <tr>
+                  <td>${c.addr}</td>
+                  <td class="num">${fmt$(c.price)}</td>
+                  <td class="num">${c.sqft.toLocaleString()}</td>
+                  <td class="num">${c.days}d</td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    `;
+    document.getElementById('drawer').classList.add('open');
+  }
+
+  function closeDrawer() {
+    document.getElementById('drawer').classList.remove('open');
+    selectedId = null;
+    renderList();
+    renderMap();
+  }
+
+  // ===== EVENTS =====
+  document.getElementById('search').addEventListener('input', (e) => {
+    searchQuery = e.target.value.toLowerCase().trim();
+    renderList();
+  });
+
+  document.getElementById('sortBy').addEventListener('change', (e) => {
+    sortBy = e.target.value;
+    renderList();
+  });
+
+  // ===== INIT =====
+  renderList();
+  renderMap();
+</script>
+
+</body>
+</html>
