@@ -514,13 +514,46 @@
 
   /* ===== RESPONSIVE ===== */
   @media (max-width: 768px) {
+    body { overflow-x: hidden; }
+
+    /* Nav */
+    nav { padding: 0 16px; }
+    nav .nav-links { display: none; }
+    .nav-cta .btn-ghost { display: none; }
+    .btn-primary { padding: 8px 14px; font-size: 13px; }
+
+    /* Hero */
+    .hero { padding: 56px 20px 40px; }
+    .btn-hero { padding: 13px 22px; font-size: 15px; }
+
+    /* App preview — hide desktop mockup, too wide to render at mobile */
+    .preview-wrap { display: none; }
+
+    /* Stats */
+    .stats-bar-inner { grid-template-columns: repeat(2, 1fr); }
+    .stat-item .num { font-size: 28px; }
+
+    /* Sections */
+    section { padding: 56px 20px; }
+    .final-cta { padding: 64px 20px; }
+    .section-sub { font-size: 15px; }
+
+    /* Grids → single column */
     .problem-grid, .features-grid, .steps, .pricing-grid { grid-template-columns: 1fr; }
     .steps::before { display: none; }
-    .stats-bar-inner { grid-template-columns: repeat(2, 1fr); }
-    .fake-body { grid-template-columns: 1fr; }
-    .fake-map { display: none; }
-    nav .nav-links { display: none; }
-    footer { flex-direction: column; align-items: flex-start; }
+
+    /* Footer */
+    footer { flex-direction: column; align-items: flex-start; gap: 20px; padding: 32px 20px; }
+    footer .links { flex-wrap: wrap; gap: 12px; }
+  }
+
+  @media (max-width: 420px) {
+    .hero h1 { font-size: 32px; }
+    .hero-actions { flex-direction: column; align-items: stretch; }
+    .hero-actions a { width: 100%; }
+    .btn-hero { justify-content: center; }
+    .stats-bar-inner { grid-template-columns: 1fr 1fr; gap: 16px; }
+    .pricing-card { padding: 22px 18px; }
   }
 </style>
 </head>
