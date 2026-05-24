@@ -1943,6 +1943,100 @@
     map.fitBounds(bounds, { padding: [40, 40] });
   }
 
+  // ===== STRATEGY-AWARE DRAWER SECTIONS =====
+  function strategySection(p, monthlyPI, monthlyExp, monthlyCF, annualCF, downPayment, closingCosts, initialCash) {
+    const primary = ['househack','brrrr','flip','cashflow','undervalued'].find(s => p.strategy.includes(s)) || 'cashflow';
+    const arv = p.comp;
+    const rehabEst = Math.round((arv - p.price) * 0.4);
+    const mao = Math.round(arv * 0.7 - rehabEst);
+    const flipProfit = Math.round(arv - p.price - rehabEst - p.price * 0.08);
+    const hh = p.unitRent ? calcHouseHack(p) : null;
+
+    const statsBar = (items) => `
+      <div style="display:grid;grid-template-columns:repeat(${items.length},1fr);gap:1px;background:var(--border);border-radius:8px;overflow:hidden;margin-bottom:20px;">
+        ${items.map(({label,val,color}) => `
+          <div style="background:var(--surface);padding:14px 12px;text-align:center;">
+            <div style="font-size:10px;text-transform:uppercase;letter-spacing:0.06em;color:var(--ink-3);font-weight:600;margin-bottom:4px;">${label}</div>
+            <div style="font-size:20px;font-weight:800;letter-spacing:-0.01em;color:${color||'var(--ink)'};">${val}</div>
+          </div>`).join('')}
+      </div>`;
+
+    if (primary === 'househack' && hh) return `
+      <div class="section">
+        <h4>House Hacking Analysis</h4>
+        <div class="score-block" style="background:linear-gradient(135deg,#5b21b6,#7c3aed);margin-bottom:16px;">
+          <div class="label">Your effective monthly cost</div>
+          <div class="num">${fmt$(Math.max(0, Math.round(hh.effectiveCost)))}<span class="out">/mo</span></div>
+          <div class="desc">After renting the other unit — only ${fmt$(hh.downPayment)} down (FHA 3.5%)</div>
+        </div>
+        ${statsBar([{label:'Down Payment',val:fmt$(hh.downPayment),color:'var(--pos)'},{label:'Total Mortgage',val:fmt$(hh.totalMortgage)+'/mo'},{label:'Rent Offset',val:fmt$(p.unitRent)+'/mo',color:'var(--pos)'},{label:'Rent Covers',val:hh.coversPct+'%',color:'var(--pos)'}])}
+        <div class="data-table">
+          <div class="data-row"><span class="k">Monthly P&amp;I (30yr @ 7%)</span><span class="v">-${fmt$(hh.pi)}</span></div>
+          <div class="data-row"><span class="k">Tax + insurance / mo</span><span class="v">-${fmt$(hh.monthlyTI)}</span></div>
+          <div class="data-row"><span class="k">Rental income (other unit)</span><span class="v pos">+${fmt$(p.unitRent)}</span></div>
+          <div class="data-row"><span class="k"><strong>Your actual cost to live here</strong></span><span class="v pos"><strong>${fmt$(Math.max(0,Math.round(hh.effectiveCost)))}/mo</strong></span></div>
+        </div>
+        <div class="insight pos" style="margin-top:10px;"><span class="insight-icon">🏠</span><span>${hh.effectiveCost <= 0 ? 'Rent fully covers your mortgage — you live free and pocket '+fmt$(Math.abs(Math.round(hh.effectiveCost)))+'/mo.' : 'You live here for '+fmt$(Math.round(hh.effectiveCost))+'/mo. Far below renting in this market — and you are building equity.'}</span></div>
+      </div>`;
+
+    if (primary === 'brrrr') return `
+      <div class="section">
+        <h4>BRRRR Analysis</h4>
+        ${statsBar([{label:'Buy',val:fmt$k(p.price)},{label:'Est. Rehab',val:fmt$k(rehabEst)},{label:'ARV',val:fmt$k(arv),color:'var(--pos)'},{label:'Cash Back',val:fmt$k(Math.max(0,Math.round(arv*0.75-p.price))),color:'var(--pos)'}])}
+        <div class="data-table">
+          <div class="data-row"><span class="k">Purchase price</span><span class="v">${fmt$(p.price)}</span></div>
+          <div class="data-row"><span class="k">Est. rehab budget</span><span class="v">+${fmt$(rehabEst)}</span></div>
+          <div class="data-row"><span class="k">After Repair Value</span><span class="v pos">${fmt$(arv)}</span></div>
+          <div class="data-row"><span class="k">Refi loan (75% ARV)</span><span class="v">${fmt$(Math.round(arv*0.75))}</span></div>
+          <div class="data-row"><span class="k"><strong>Est. cash back at refi</strong></span><span class="v pos"><strong>${fmt$(Math.max(0,Math.round(arv*0.75-p.price)))}</strong></span></div>
+          <div class="data-row"><span class="k">Monthly cash flow after refi</span><span class="v ${monthlyCF>0?'pos':'neg'}">${monthlyCF>0?'+':''}${fmt$(monthlyCF)}</span></div>
+        </div>
+      </div>`;
+
+    if (primary === 'flip') return `
+      <div class="section">
+        <h4>Flip Analysis</h4>
+        ${statsBar([{label:'Ask Price',val:fmt$k(p.price)},{label:'Est. Rehab',val:fmt$k(rehabEst)},{label:'ARV',val:fmt$k(arv),color:'var(--pos)'},{label:'Est. Profit',val:fmt$k(Math.max(0,flipProfit)),color:flipProfit>0?'var(--pos)':'var(--neg)'}])}
+        <div class="data-table">
+          <div class="data-row"><span class="k">After Repair Value (ARV)</span><span class="v">${fmt$(arv)}</span></div>
+          <div class="data-row"><span class="k">Max Allowable Offer (70%)</span><span class="v pos">${fmt$(mao)}</span></div>
+          <div class="data-row"><span class="k">Current ask vs MAO</span><span class="v ${p.price<=mao?'pos':'neg'}">${p.price<=mao?'Under MAO — good':fmt$(p.price-mao)+' over MAO'}</span></div>
+          <div class="data-row"><span class="k">Est. rehab</span><span class="v">-${fmt$(rehabEst)}</span></div>
+          <div class="data-row"><span class="k">Selling costs (est. 8%)</span><span class="v">-${fmt$(Math.round(arv*0.08))}</span></div>
+          <div class="data-row"><span class="k"><strong>Est. net profit</strong></span><span class="v ${flipProfit>0?'pos':'neg'}"><strong>${fmt$(Math.max(0,flipProfit))}</strong></span></div>
+        </div>
+      </div>`;
+
+    if (primary === 'undervalued') return `
+      <div class="section">
+        <h4>Value Analysis</h4>
+        ${statsBar([{label:'Ask Price',val:fmt$k(p.price)},{label:'Comp Value',val:fmt$k(p.comp),color:'var(--pos)'},{label:'Discount',val:p.discount+'%',color:'var(--pos)'},{label:'Instant Equity',val:fmt$k(p.comp-p.price),color:'var(--pos)'}])}
+        <div class="data-table">
+          <div class="data-row"><span class="k">List price</span><span class="v">${fmt$(p.price)}</span></div>
+          <div class="data-row"><span class="k">Neighborhood comp avg</span><span class="v">${fmt$(p.comp)}</span></div>
+          <div class="data-row"><span class="k">Discount below comps</span><span class="v pos">-${p.discount}%</span></div>
+          <div class="data-row"><span class="k"><strong>Equity at purchase</strong></span><span class="v pos"><strong>${fmt$(p.comp-p.price)}</strong></span></div>
+          <div class="data-row"><span class="k">Cap rate</span><span class="v">${p.cap}%</span></div>
+          <div class="data-row"><span class="k">Cash-on-cash</span><span class="v ${p.coc>=10?'pos':''}">${p.coc}%</span></div>
+        </div>
+      </div>`;
+
+    return `
+      <div class="section">
+        <h4>Cash Flow Analysis</h4>
+        ${statsBar([{label:'Monthly Rent',val:fmt$k(p.rent),color:'var(--pos)'},{label:'Cap Rate',val:p.cap+'%',color:p.cap>=8?'var(--pos)':p.cap>=6?'var(--ink)':'var(--warn)'},{label:'Cash-on-Cash',val:p.coc+'%',color:p.coc>=10?'var(--pos)':'var(--ink)'},{label:'Net / mo',val:(monthlyCF>0?'+':'')+fmt$k(monthlyCF),color:monthlyCF>0?'var(--pos)':'var(--neg)'}])}
+        <div class="data-table">
+          <div class="data-row"><span class="k">Est. monthly rent</span><span class="v pos">${fmt$(p.rent)}</span></div>
+          <div class="data-row"><span class="k">P&amp;I (30yr @ 7%, 20% down)</span><span class="v">-${fmt$(monthlyPI)}</span></div>
+          <div class="data-row"><span class="k">Tax + insurance / mo</span><span class="v">-${fmt$(monthlyExp)}</span></div>
+          ${p.hoa > 0 ? `<div class="data-row"><span class="k">HOA</span><span class="v">-${fmt$(p.hoa)}</span></div>` : ''}
+          <div class="data-row"><span class="k"><strong>Net monthly cash flow</strong></span><span class="v ${monthlyCF>0?'pos':'neg'}"><strong>${monthlyCF>0?'+':''}${fmt$(monthlyCF)}</strong></span></div>
+          <div class="data-row"><span class="k">Annual cash flow</span><span class="v ${annualCF>0?'pos':'neg'}">${annualCF>0?'+':''}${fmt$(annualCF)}</span></div>
+          <div class="data-row"><span class="k">Cash needed (20% + closing)</span><span class="v">${fmt$(initialCash)}</span></div>
+        </div>
+      </div>`;
+  }
+
   // ===== DRAWER =====
   function openDrawer() {
     const p = properties.find(x => x.id === selectedId);
@@ -2000,64 +2094,7 @@
           <div class="desc">Grade ${p.grade} · ${p.tagline}</div>
         </div>
 
-        <div class="section">
-          <h4>Score Components</h4>
-          <div class="components">
-            ${components.map(c => `
-              <div class="comp-row">
-                <div class="comp-label">${c.label}</div>
-                <div class="comp-bar"><div class="comp-fill ${c.val >= 75 ? 'high' : c.val >= 50 ? '' : 'low'}" style="width: ${c.val}%"></div></div>
-                <div class="comp-num">${c.val}</div>
-              </div>
-            `).join('')}
-          </div>
-        </div>
-
-        <div class="section">
-          <h4>Investment Analysis</h4>
-          <div class="data-table">
-            <div class="data-row"><span class="k">Purchase price</span><span class="v">${fmt$(p.price)}</span></div>
-            <div class="data-row"><span class="k">Down payment (20%)</span><span class="v">${fmt$(downPayment)}</span></div>
-            <div class="data-row"><span class="k">Closing costs (est. 3%)</span><span class="v">${fmt$(closingCosts)}</span></div>
-            <div class="data-row"><span class="k">Initial cash required</span><span class="v">${fmt$(initialCash)}</span></div>
-            <div class="data-row"><span class="k">Est. monthly rent</span><span class="v">${fmt$(p.rent)}</span></div>
-            <div class="data-row"><span class="k">P&I (30yr @ 7%)</span><span class="v">−${fmt$(monthlyPI)}</span></div>
-            <div class="data-row"><span class="k">Property tax (monthly)</span><span class="v">−${fmt$(Math.round(p.taxes/12))}</span></div>
-            <div class="data-row"><span class="k">Insurance (monthly)</span><span class="v">−${fmt$(Math.round(p.insurance/12))}</span></div>
-            ${p.hoa > 0 ? `<div class="data-row"><span class="k">HOA</span><span class="v">−${fmt$(p.hoa)}</span></div>` : ''}
-            <div class="data-row"><span class="k"><strong>Net monthly cash flow</strong></span><span class="v ${monthlyCF > 0 ? 'pos' : 'neg'}">${monthlyCF > 0 ? '+' : ''}${fmt$(monthlyCF)}</span></div>
-            <div class="data-row"><span class="k">Annual cash flow</span><span class="v ${annualCF > 0 ? 'pos' : 'neg'}">${annualCF > 0 ? '+' : ''}${fmt$(annualCF)}</span></div>
-            <div class="data-row"><span class="k">Cap rate</span><span class="v">${p.cap}%</span></div>
-            <div class="data-row"><span class="k">Cash-on-cash return</span><span class="v ${p.coc >= 10 ? 'pos' : ''}">${p.coc}%</span></div>
-          </div>
-        </div>
-
-        ${p.strategy.includes('househack') && p.unitRent ? `
-        <div class="section">
-          <h4>🏠 House Hacking Analysis</h4>
-          <div class="score-block" style="background:linear-gradient(135deg,#5b21b6,#7c3aed);">
-            <div class="label">Your effective monthly cost</div>
-            <div class="num">${fmt$(Math.max(0, Math.round(calcHouseHack(p).effectiveCost)))}<span class="out">/mo</span></div>
-            <div class="desc">After renting the other unit for ${fmt$(p.unitRent)}/mo — using FHA 3.5% down financing</div>
-          </div>
-          <div class="data-table">
-            <div class="data-row"><span class="k">Down Payment (FHA 3.5%)</span><span class="v pos">${fmt$(calcHouseHack(p).downPayment)}</span></div>
-            <div class="data-row"><span class="k">Monthly P&amp;I (30yr @ 7%)</span><span class="v">−${fmt$(calcHouseHack(p).pi)}</span></div>
-            <div class="data-row"><span class="k">Tax + Insurance / mo</span><span class="v">−${fmt$(calcHouseHack(p).monthlyTI)}</span></div>
-            <div class="data-row"><span class="k">Total mortgage payment</span><span class="v">−${fmt$(calcHouseHack(p).totalMortgage)}</span></div>
-            <div class="data-row"><span class="k">Rental income (other unit)</span><span class="v pos">+${fmt$(p.unitRent)}</span></div>
-            <div class="data-row"><span class="k"><strong>Your actual monthly cost</strong></span><span class="v pos"><strong>${fmt$(Math.max(0,Math.round(calcHouseHack(p).effectiveCost)))}</strong></span></div>
-            <div class="data-row"><span class="k">Rent covers</span><span class="v pos">${calcHouseHack(p).coversPct}% of mortgage</span></div>
-          </div>
-          <div class="insight pos" style="margin-top:10px;">
-            <span class="insight-icon">🏠</span>
-            <span>${calcHouseHack(p).effectiveCost <= 0 
-              ? 'The rental income fully covers your mortgage — you live here for free and pocket ' + fmt$(Math.abs(Math.round(calcHouseHack(p).effectiveCost))) + '/mo.'
-              : 'You live here for ' + fmt$(Math.round(calcHouseHack(p).effectiveCost)) + '/mo — far below market rent in this area. Build equity while you live for almost nothing.'
-            }</span>
-          </div>
-        </div>
-        ` : ''}
+        ${strategySection(p, monthlyPI, monthlyExp, monthlyCF, annualCF, downPayment, closingCosts, initialCash)}
 
         <div class="section">
           <h4>AI Insights</h4>
