@@ -897,6 +897,12 @@
   .goal-card h3 { font-size: 14px; font-weight: 700; margin-bottom: 6px; }
   .goal-card p { font-size: 11px; color: var(--ink-3); line-height: 1.5; }
   @media (max-width: 500px) { .goal-cards { grid-template-columns: 1fr; } }
+  .loc-chip {
+    padding: 5px 12px; border: 1px solid var(--border); border-radius: 20px;
+    background: var(--surface); color: var(--ink-2); font-size: 12px;
+    font-family: inherit; cursor: pointer; transition: all 0.12s;
+  }
+  .loc-chip:hover { border-color: var(--primary); color: var(--primary); background: var(--primary-soft); }
   .verdict.great { background: var(--pos-soft); color: var(--pos); }
   .verdict.good { background: var(--warn-soft); color: var(--warn); }
   .verdict.fair { background: var(--neg-soft); color: var(--neg); }
@@ -1220,27 +1226,59 @@
 <!-- GOAL MODAL -->
 <div class="goal-modal-overlay" id="goalModal">
   <div class="goal-modal">
-    <div class="mm-logo">D</div>
-    <h2>What's your goal?</h2>
-    <p>Pick one — we'll show you the right deals and cut out everything else for now.</p>
-    <div class="goal-cards">
-      <div class="goal-card" onclick="setGoal('househack')">
-        <div class="gc-icon">🏠</div>
-        <h3>Live there &amp; save</h3>
-        <p>Buy a duplex. Let a tenant help pay your mortgage every month.</p>
+
+    <!-- Step 1: Pick goal -->
+    <div id="goalStep1">
+      <div class="mm-logo">D</div>
+      <h2>What's your goal?</h2>
+      <p>Pick one — we'll show you the right deals and cut out everything else for now.</p>
+      <div class="goal-cards">
+        <div class="goal-card" onclick="pickGoal('househack')">
+          <div class="gc-icon">🏠</div>
+          <h3>Live there &amp; save</h3>
+          <p>Buy a duplex. Let a tenant help pay your mortgage every month.</p>
+        </div>
+        <div class="goal-card" onclick="pickGoal('cashflow')">
+          <div class="gc-icon">💰</div>
+          <h3>Make monthly income</h3>
+          <p>Own rental properties that put cash in your pocket every month.</p>
+        </div>
+        <div class="goal-card" onclick="pickGoal('flip')">
+          <div class="gc-icon">📈</div>
+          <h3>Buy below market</h3>
+          <p>Find undervalued homes you can buy at a discount and profit on.</p>
+        </div>
       </div>
-      <div class="goal-card" onclick="setGoal('cashflow')">
-        <div class="gc-icon">💰</div>
-        <h3>Make monthly income</h3>
-        <p>Own rental properties that put cash in your pocket every month.</p>
-      </div>
-      <div class="goal-card" onclick="setGoal('flip')">
-        <div class="gc-icon">📈</div>
-        <h3>Buy below market</h3>
-        <p>Find undervalued homes you can buy at a discount and profit on.</p>
-      </div>
+      <p style="font-size:11px;color:var(--ink-4);margin-top:20px;">You can change your goal anytime from the Guided bar.</p>
     </div>
-    <p style="font-size:11px;color:var(--ink-4);margin-top:20px;">You can change your goal anytime from the Guided bar.</p>
+
+    <!-- Step 2: Pick location -->
+    <div id="goalStep2" style="display:none;">
+      <div class="mm-logo">📍</div>
+      <h2>Where are you looking?</h2>
+      <p>Enter a city or state — we'll only show deals in that area.</p>
+      <input type="text" id="goalLocationInput" placeholder="e.g. Cleveland, OH or Nashville"
+        style="width:100%;padding:12px 14px;border:1.5px solid var(--border);border-radius:9px;font-size:15px;font-family:inherit;color:var(--ink);background:var(--surface);outline:none;margin:16px 0 12px;box-sizing:border-box;"
+        onfocus="this.style.borderColor='var(--primary)'" onblur="this.style.borderColor='var(--border)'"
+        onkeydown="if(event.key==='Enter')confirmGoal()"/>
+      <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:20px;">
+        <span style="font-size:11px;color:var(--ink-4);width:100%;margin-bottom:2px;">Quick pick:</span>
+        <button onclick="quickLocation('Cleveland')" class="loc-chip">Cleveland</button>
+        <button onclick="quickLocation('Nashville')" class="loc-chip">Nashville</button>
+        <button onclick="quickLocation('Columbus')" class="loc-chip">Columbus</button>
+        <button onclick="quickLocation('Charlotte')" class="loc-chip">Charlotte</button>
+        <button onclick="quickLocation('Houston')" class="loc-chip">Houston</button>
+        <button onclick="quickLocation('Austin')" class="loc-chip">Austin</button>
+        <button onclick="quickLocation('Raleigh')" class="loc-chip">Raleigh</button>
+        <button onclick="quickLocation('Miami')" class="loc-chip">Miami</button>
+      </div>
+      <div style="display:flex;gap:10px;">
+        <button onclick="backToGoal()" style="flex:1;padding:11px;border:1.5px solid var(--border);border-radius:8px;background:var(--surface);font-size:14px;font-weight:600;cursor:pointer;font-family:inherit;color:var(--ink-2);">← Back</button>
+        <button onclick="confirmGoal()" style="flex:2;padding:11px;border:none;border-radius:8px;background:var(--primary);color:white;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;">Show deals →</button>
+      </div>
+      <button onclick="skipLocation()" style="background:none;border:none;color:var(--ink-4);font-size:12px;cursor:pointer;font-family:inherit;margin-top:14px;width:100%;">Skip — show me everywhere</button>
+    </div>
+
   </div>
 </div>
 
@@ -1714,6 +1752,7 @@
   // ===== STATE =====
   let selectedId = null;
   let currentGoal = null;
+  let currentLocation = null;
   let sortBy = 'score';
   let searchQuery = '';
   const filters = { priceMin: 0, priceMax: 0, bedsMin: 0, bathsMin: 0, capMin: 0, strategies: [], scoreMin: 0, statuses: [] };
@@ -1845,6 +1884,14 @@
       const goalStrats = { househack: ['househack'], cashflow: ['cashflow'], flip: ['flip', 'undervalued'] };
       const strats = goalStrats[currentGoal] || [];
       if (strats.length) sorted = sorted.filter(p => p.strategy.some(s => strats.includes(s)));
+    }
+    if (document.documentElement.getAttribute('data-mode') === 'guided' && currentLocation) {
+      const loc = currentLocation.toLowerCase();
+      sorted = sorted.filter(p =>
+        p.city.toLowerCase().includes(loc) ||
+        p.state.toLowerCase().includes(loc) ||
+        (p.zip && p.zip.toString().includes(loc))
+      );
     }
 
     sorted.sort((a, b) => {
@@ -2290,21 +2337,60 @@
   }
 
   function showGoalModal() {
+    document.getElementById('goalStep1').style.display = 'block';
+    document.getElementById('goalStep2').style.display = 'none';
+    document.getElementById('goalLocationInput').value = currentLocation || '';
     document.getElementById('goalModal').style.display = 'flex';
   }
 
-  const GOAL_LABELS = {
-    househack: '🏠 Showing homes where a tenant helps cover your mortgage',
-    cashflow: '💰 Showing properties that generate monthly income',
-    flip: '📈 Showing undervalued homes priced below market'
-  };
+  function pickGoal(goal) {
+    currentGoal = goal;
+    document.getElementById('goalStep1').style.display = 'none';
+    document.getElementById('goalStep2').style.display = 'block';
+    document.getElementById('goalLocationInput').focus();
+  }
+
+  function backToGoal() {
+    document.getElementById('goalStep1').style.display = 'block';
+    document.getElementById('goalStep2').style.display = 'none';
+  }
+
+  function quickLocation(city) {
+    document.getElementById('goalLocationInput').value = city;
+    confirmGoal();
+  }
+
+  function skipLocation() {
+    document.getElementById('goalLocationInput').value = '';
+    confirmGoal();
+  }
+
+  function confirmGoal() {
+    const loc = document.getElementById('goalLocationInput').value.trim();
+    currentLocation = loc || null;
+    localStorage.setItem('ds-goal', currentGoal);
+    if (currentLocation) localStorage.setItem('ds-location', currentLocation);
+    else localStorage.removeItem('ds-location');
+    document.getElementById('goalModal').style.display = 'none';
+    updateGuidedBar();
+    renderList();
+  }
+
+  function updateGuidedBar() {
+    const icons = { househack: '🏠', cashflow: '💰', flip: '📈' };
+    const names = { househack: 'House hacks', cashflow: 'Cash flow deals', flip: 'Below-market deals' };
+    const icon = icons[currentGoal] || '🌱';
+    const name = names[currentGoal] || 'Deals';
+    const locText = currentLocation ? ` in ${currentLocation}` : ' — showing all markets';
+    const bar = document.getElementById('guidedBarText');
+    if (bar) bar.textContent = icon + ' ' + name + locText;
+  }
 
   function setGoal(goal) {
     currentGoal = goal;
     localStorage.setItem('ds-goal', goal);
     document.getElementById('goalModal').style.display = 'none';
-    const bar = document.getElementById('guidedBarText');
-    if (bar) bar.textContent = GOAL_LABELS[goal] || '🌱 Guided Mode';
+    updateGuidedBar();
     renderList();
   }
 
@@ -2493,15 +2579,11 @@
   }
 
   const savedGoal = localStorage.getItem('ds-goal');
+  const savedLocation = localStorage.getItem('ds-location');
   if (savedGoal) {
     currentGoal = savedGoal;
-    const barEl = document.getElementById('guidedBarText');
-    const GOAL_LABELS_INIT = {
-      househack: '🏠 Showing homes where a tenant helps cover your mortgage',
-      cashflow: '💰 Showing properties that generate monthly income',
-      flip: '📈 Showing undervalued homes priced below market'
-    };
-    if (barEl) barEl.textContent = GOAL_LABELS_INIT[savedGoal] || '🌱 Guided Mode';
+    currentLocation = savedLocation || null;
+    updateGuidedBar();
   } else if ((savedMode || 'pro') === 'guided') {
     showGoalModal();
   }
