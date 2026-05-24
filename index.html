@@ -1,1634 +1,844 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
+<meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>DealScope — Investment Property Intelligence</title>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<title>DealScope — Find Investment Deals. No Realtor Required.</title>
+<meta name="description" content="DealScope analyzes thousands of properties and scores every deal so you can find investment opportunities before anyone else does."/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet"/>
 <style>
   :root {
-    --bg: #f5f7fa;
-    --surface: #ffffff;
-    --surface-2: #f9fafc;
-    --border: #e2e6ed;
-    --border-dark: #cbd2dc;
-    --ink: #1a2332;
-    --ink-2: #4a5568;
-    --ink-3: #718096;
-    --ink-4: #a0aec0;
     --primary: #1e5fd9;
     --primary-dark: #1849b8;
     --primary-soft: #e8f0ff;
+    --ink: #0f172a;
+    --ink-2: #334155;
+    --ink-3: #64748b;
+    --ink-4: #94a3b8;
+    --border: #e2e8f0;
+    --surface: #ffffff;
+    --bg: #f8fafc;
     --pos: #16a34a;
     --pos-soft: #dcfce7;
     --warn: #d97706;
-    --warn-soft: #fef3c7;
-    --neg: #dc2626;
-    --neg-soft: #fee2e2;
-    --tier-a-bg: #16a34a;
-    --tier-b-bg: #2563eb;
-    --tier-c-bg: #d97706;
-    --tier-d-bg: #6b7280;
   }
 
   * { margin: 0; padding: 0; box-sizing: border-box; }
-
-  html, body {
-    background: var(--bg);
-    color: var(--ink);
+  html { scroll-behavior: smooth; }
+  body {
     font-family: 'Inter', -apple-system, sans-serif;
+    background: var(--surface);
+    color: var(--ink);
     -webkit-font-smoothing: antialiased;
-    font-size: 14px;
-    overflow: hidden;
-    height: 100vh;
   }
+  a { text-decoration: none; color: inherit; }
 
-  button { font-family: inherit; cursor: pointer; }
-  input, select { font-family: inherit; }
-
-  /* ===== TOP BAR ===== */
-  .topbar {
-    height: 56px;
-    background: var(--surface);
-    border-bottom: 1px solid var(--border);
-    display: flex;
-    align-items: center;
-    padding: 0 20px;
-    gap: 24px;
-    z-index: 30;
-  }
-
-  .brand {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    font-weight: 800;
-    font-size: 18px;
-    letter-spacing: -0.02em;
-    color: var(--ink);
-  }
-  .brand-mark {
-    width: 28px;
-    height: 28px;
-    background: var(--primary);
-    border-radius: 6px;
-    position: relative;
-    display: grid;
-    place-items: center;
-    color: white;
-    font-weight: 800;
-    font-size: 14px;
-  }
-
-  .nav-tabs {
-    display: flex;
-    gap: 4px;
-    margin-left: 8px;
-  }
-  .nav-tab {
-    padding: 8px 14px;
-    border-radius: 6px;
-    font-size: 13px;
-    font-weight: 500;
-    color: var(--ink-2);
-    background: transparent;
-    border: none;
-    cursor: pointer;
-    transition: background 0.15s;
-  }
-  .nav-tab:hover { background: var(--surface-2); }
-  .nav-tab.active { background: var(--primary-soft); color: var(--primary); font-weight: 600; }
-
-  .topbar-right {
-    margin-left: auto;
-    display: flex;
-    align-items: center;
-    gap: 12px;
-  }
-  .credits {
-    padding: 6px 12px;
-    background: var(--surface-2);
-    border: 1px solid var(--border);
-    border-radius: 6px;
-    font-size: 12px;
-    color: var(--ink-2);
-  }
-  .credits strong { color: var(--ink); }
-  .avatar {
-    width: 32px;
-    height: 32px;
-    border-radius: 50%;
-    background: linear-gradient(135deg, #1e5fd9, #9333ea);
-    color: white;
-    display: grid;
-    place-items: center;
-    font-weight: 600;
-    font-size: 12px;
-  }
-
-  /* ===== SEARCH BAR ===== */
-  .searchbar {
-    height: 52px;
-    background: var(--surface);
-    border-bottom: 1px solid var(--border);
-    display: flex;
-    align-items: center;
-    padding: 0 20px;
-    gap: 10px;
-  }
-
-  .search-box {
-    flex: 0 0 360px;
-    height: 36px;
-    padding: 0 12px 0 36px;
-    background: var(--surface-2);
-    border: 1px solid var(--border);
-    border-radius: 6px;
-    font-size: 13px;
-    color: var(--ink);
-    outline: none;
-    transition: all 0.15s;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%23718096' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='11' cy='11' r='8'/%3E%3Cpath d='m21 21-4.35-4.35'/%3E%3C/svg%3E");
-    background-repeat: no-repeat;
-    background-position: 12px center;
-  }
-  .search-box:focus {
-    border-color: var(--primary);
-    background-color: var(--surface);
-    box-shadow: 0 0 0 3px rgba(30, 95, 217, 0.1);
-  }
-
-  .filter-btn {
-    height: 36px;
-    padding: 0 12px;
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 6px;
-    font-size: 13px;
-    color: var(--ink-2);
-    font-weight: 500;
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    transition: all 0.15s;
-  }
-  .filter-btn:hover { border-color: var(--border-dark); background: var(--surface-2); }
-  .filter-btn.active {
-    background: var(--primary-soft);
-    border-color: var(--primary);
-    color: var(--primary);
-  }
-  .filter-btn .chev { font-size: 9px; opacity: 0.7; }
-  .filter-btn .count {
-    background: var(--primary);
-    color: white;
-    border-radius: 10px;
-    padding: 1px 6px;
-    font-size: 10px;
-    font-weight: 600;
-  }
-
-  .divider { width: 1px; height: 22px; background: var(--border); }
-
-  .save-search {
-    margin-left: auto;
-    height: 36px;
-    padding: 0 14px;
-    background: var(--primary);
-    color: white;
-    border: none;
-    border-radius: 6px;
-    font-size: 13px;
-    font-weight: 600;
-    transition: background 0.15s;
-  }
-  .save-search:hover { background: var(--primary-dark); }
-
-  /* ===== MAIN GRID ===== */
-  .main {
-    display: grid;
-    grid-template-columns: 1fr 1.1fr;
-    height: calc(100vh - 108px);
-  }
-
-  /* ===== LEFT PANEL — RESULTS ===== */
-  .results-panel {
-    background: var(--surface);
-    border-right: 1px solid var(--border);
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
-  }
-
-  .results-header {
-    padding: 12px 20px;
-    border-bottom: 1px solid var(--border);
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    background: var(--surface);
-  }
-  .results-header .count {
-    font-size: 13px;
-    color: var(--ink-2);
-  }
-  .results-header .count strong { color: var(--ink); font-size: 15px; font-weight: 700; }
-  .results-header .controls {
-    display: flex;
-    gap: 8px;
-    align-items: center;
-  }
-  .sort-select {
-    height: 30px;
-    padding: 0 8px;
-    border: 1px solid var(--border);
-    border-radius: 5px;
-    background: var(--surface);
-    font-size: 12px;
-    color: var(--ink-2);
-    cursor: pointer;
-    outline: none;
-  }
-  .view-toggle {
-    display: flex;
-    border: 1px solid var(--border);
-    border-radius: 5px;
-    overflow: hidden;
-  }
-  .view-toggle button {
-    width: 30px;
-    height: 30px;
-    background: var(--surface);
-    border: none;
-    display: grid;
-    place-items: center;
-    color: var(--ink-3);
-    font-size: 12px;
-  }
-  .view-toggle button.active { background: var(--primary); color: white; }
-
-  /* ===== RESULTS TABLE ===== */
-  .results-list {
-    flex: 1;
-    overflow-y: auto;
-  }
-
-  .row {
-    display: flex;
-    padding: 12px 20px;
-    border-bottom: 1px solid var(--border);
-    cursor: pointer;
-    transition: background 0.1s;
-    gap: 14px;
-  }
-  .row:hover { background: var(--surface-2); }
-  .row.selected {
-    background: var(--primary-soft);
-    border-left: 3px solid var(--primary);
-    padding-left: 17px;
-  }
-
-  .row-thumb {
-    flex: 0 0 110px;
-    aspect-ratio: 4/3;
-    border-radius: 6px;
-    overflow: hidden;
-    background: var(--surface-2);
-    border: 1px solid var(--border);
-    position: relative;
-  }
-  .row-thumb svg { width: 100%; height: 100%; display: block; }
-  .row-thumb .photo-count {
-    position: absolute;
-    bottom: 4px;
-    right: 4px;
-    background: rgba(0,0,0,0.7);
-    color: white;
-    padding: 1px 5px;
-    border-radius: 3px;
-    font-size: 9px;
-    font-weight: 500;
-  }
-
-  .row-body { flex: 1; min-width: 0; }
-
-  .row-top {
-    display: flex;
-    justify-content: space-between;
-    align-items: baseline;
-    margin-bottom: 2px;
-  }
-  .row-price {
-    font-size: 18px;
-    font-weight: 700;
-    color: var(--ink);
-    letter-spacing: -0.01em;
-  }
-  .row-score {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    font-size: 12px;
-    color: var(--ink-3);
-  }
-  .score-pill {
-    display: inline-flex;
-    align-items: center;
-    gap: 4px;
-    padding: 2px 7px;
-    border-radius: 4px;
-    font-size: 11px;
-    font-weight: 700;
-    color: white;
-  }
-  .score-pill.A { background: var(--tier-a-bg); }
-  .score-pill.B { background: var(--tier-b-bg); }
-  .score-pill.C { background: var(--tier-c-bg); }
-  .score-pill.D { background: var(--tier-d-bg); }
-
-  .row-addr {
-    font-size: 13px;
-    color: var(--ink-2);
-    margin-bottom: 6px;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
-
-  .row-specs {
-    font-size: 12px;
-    color: var(--ink-3);
-    margin-bottom: 8px;
-  }
-  .row-specs strong { color: var(--ink-2); font-weight: 600; }
-  .row-specs .dot { margin: 0 6px; color: var(--ink-4); }
-
-  .row-metrics {
-    display: flex;
-    gap: 6px;
-    flex-wrap: wrap;
-  }
-  .pill {
-    padding: 3px 8px;
-    border-radius: 4px;
-    font-size: 11px;
-    font-weight: 600;
-    background: var(--surface-2);
-    border: 1px solid var(--border);
-    color: var(--ink-2);
-  }
-  .pill .label { color: var(--ink-3); font-weight: 500; margin-right: 3px; }
-  .pill.pos { background: var(--pos-soft); border-color: transparent; color: var(--pos); }
-  .pill.warn { background: var(--warn-soft); border-color: transparent; color: var(--warn); }
-  .pill.neg { background: var(--neg-soft); border-color: transparent; color: var(--neg); }
-
-  /* ===== RIGHT PANEL — MAP ===== */
-  .map-panel {
-    position: relative;
-    background: #e8eef5;
-    overflow: hidden;
-  }
-
-  .map {
-    width: 100%;
-    height: 100%;
-    position: relative;
-  }
-  .map::before, .map::after { display: none; }
-
-  /* Map pins */
-  .pin {
-    position: absolute;
-    transform: translate(-50%, -100%);
-    cursor: pointer;
-    z-index: 5;
-    transition: all 0.15s;
-  }
-  .pin:hover { z-index: 10; transform: translate(-50%, -100%) scale(1.08); }
-  .pin.selected { z-index: 15; transform: translate(-50%, -100%) scale(1.15); }
-
-  .pin-body {
-    background: var(--surface);
-    border: 2px solid var(--primary);
-    border-radius: 16px;
-    padding: 4px 10px;
-    font-size: 12px;
-    font-weight: 700;
-    color: var(--primary);
-    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
-    white-space: nowrap;
-    position: relative;
-  }
-  .pin.selected .pin-body {
-    background: var(--primary);
-    color: white;
-  }
-  .pin-body::after {
-    content: '';
-    position: absolute;
-    bottom: -7px;
-    left: 50%;
-    transform: translateX(-50%) rotate(45deg);
-    width: 10px;
-    height: 10px;
-    background: var(--surface);
-    border-right: 2px solid var(--primary);
-    border-bottom: 2px solid var(--primary);
-  }
-  .pin.selected .pin-body::after { background: var(--primary); }
-
-  .pin.A .pin-body { border-color: var(--tier-a-bg); color: var(--tier-a-bg); }
-  .pin.A .pin-body::after { border-right-color: var(--tier-a-bg); border-bottom-color: var(--tier-a-bg); }
-  .pin.A.selected .pin-body { background: var(--tier-a-bg); color: white; }
-  .pin.A.selected .pin-body::after { background: var(--tier-a-bg); }
-
-  .pin.C .pin-body { border-color: var(--tier-c-bg); color: var(--tier-c-bg); }
-  .pin.C .pin-body::after { border-right-color: var(--tier-c-bg); border-bottom-color: var(--tier-c-bg); }
-
-  /* Map controls */
-  .map-controls {
-    position: absolute;
-    top: 16px;
-    right: 16px;
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    z-index: 800;
-  }
-  .map-btn {
-    width: 36px;
-    height: 36px;
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 6px;
-    display: grid;
-    place-items: center;
-    color: var(--ink-2);
-    font-weight: 600;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-  }
-  .map-btn:hover { background: var(--surface-2); }
-
-  .map-overlay-stats {
-    position: absolute;
-    top: 16px;
-    left: 16px;
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    padding: 12px 16px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-    z-index: 800;
-    display: flex;
-    gap: 20px;
-  }
-  .map-stat .label {
-    font-size: 10px;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    color: var(--ink-3);
-    font-weight: 600;
-    margin-bottom: 2px;
-  }
-  .map-stat .val {
-    font-size: 16px;
-    font-weight: 700;
-    color: var(--ink);
-  }
-  .map-stat .val.pos { color: var(--pos); }
-
-  .map-legend {
-    position: absolute;
-    bottom: 16px;
-    left: 16px;
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 6px;
-    padding: 10px 14px;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.08);
-    display: flex;
-    gap: 14px;
-    font-size: 11px;
-    z-index: 800;
-  }
-  .legend-item { display: flex; align-items: center; gap: 5px; color: var(--ink-2); }
-  .legend-dot { width: 10px; height: 10px; border-radius: 50%; }
-
-  /* ===== DETAIL DRAWER ===== */
-  .drawer {
-    position: fixed;
-    top: 0;
-    right: -560px;
-    width: 560px;
-    height: 100vh;
-    background: var(--surface);
-    border-left: 1px solid var(--border);
-    box-shadow: -8px 0 32px rgba(0,0,0,0.12);
-    transition: right 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
-    z-index: 50;
-    overflow-y: auto;
-  }
-  .drawer.open { right: 0; }
-
-  .drawer-header {
+  /* ===== NAV ===== */
+  nav {
     position: sticky;
     top: 0;
-    background: var(--surface);
+    background: rgba(255,255,255,0.92);
+    backdrop-filter: blur(12px);
     border-bottom: 1px solid var(--border);
-    padding: 16px 20px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    z-index: 5;
-  }
-  .drawer-close {
-    width: 32px;
-    height: 32px;
-    border-radius: 6px;
-    border: 1px solid var(--border);
-    background: var(--surface);
-    color: var(--ink-2);
-    font-size: 18px;
-  }
-  .drawer-close:hover { background: var(--surface-2); }
-
-  .drawer-actions { display: flex; gap: 8px; }
-  .drawer-action {
-    height: 32px;
-    padding: 0 12px;
-    border-radius: 6px;
-    font-size: 12px;
-    font-weight: 600;
-    border: 1px solid var(--border);
-    background: var(--surface);
-    color: var(--ink-2);
+    z-index: 100;
+    padding: 0 24px;
+    height: 60px;
     display: flex;
     align-items: center;
-    gap: 4px;
-  }
-  .drawer-action:hover { background: var(--surface-2); }
-  .drawer-action.primary {
-    background: var(--primary);
-    border-color: var(--primary);
-    color: white;
-  }
-  .drawer-action.primary:hover { background: var(--primary-dark); }
-
-  .drawer-hero {
-    aspect-ratio: 16/10;
-    background: var(--surface-2);
-    border-bottom: 1px solid var(--border);
-    position: relative;
-    overflow: hidden;
-  }
-  .drawer-hero svg { width: 100%; height: 100%; display: block; }
-  .hero-badge {
-    position: absolute;
-    top: 12px;
-    left: 12px;
-    background: rgba(0,0,0,0.7);
-    color: white;
-    padding: 4px 10px;
-    border-radius: 4px;
-    font-size: 11px;
-    font-weight: 600;
-  }
-
-  .drawer-body { padding: 20px; }
-
-  .drawer-price {
-    display: flex;
     justify-content: space-between;
-    align-items: flex-start;
-    margin-bottom: 6px;
   }
-  .drawer-price .num {
-    font-size: 32px;
+  .nav-brand {
+    display: flex;
+    align-items: center;
+    gap: 8px;
     font-weight: 800;
+    font-size: 18px;
     letter-spacing: -0.02em;
-    line-height: 1;
   }
-  .drawer-price .badge {
-    padding: 5px 10px;
-    background: var(--pos-soft);
-    color: var(--pos);
-    border-radius: 5px;
-    font-size: 12px;
-    font-weight: 600;
+  .nav-brand-mark {
+    width: 30px;
+    height: 30px;
+    background: var(--primary);
+    border-radius: 7px;
+    display: grid;
+    place-items: center;
+    color: white;
+    font-weight: 800;
+    font-size: 15px;
   }
-  .drawer-addr {
+  .nav-links {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .nav-links a {
+    padding: 7px 14px;
+    border-radius: 6px;
     font-size: 14px;
+    font-weight: 500;
     color: var(--ink-2);
+    transition: background 0.15s;
+  }
+  .nav-links a:hover { background: var(--bg); }
+  .nav-cta {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .btn-ghost {
+    padding: 8px 16px;
+    border-radius: 7px;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--ink-2);
+    border: 1px solid var(--border);
+    background: var(--surface);
+    cursor: pointer;
+    font-family: inherit;
+    transition: all 0.15s;
+  }
+  .btn-ghost:hover { background: var(--bg); }
+  .btn-primary {
+    padding: 8px 18px;
+    border-radius: 7px;
+    font-size: 14px;
+    font-weight: 600;
+    color: white;
+    background: var(--primary);
+    border: none;
+    cursor: pointer;
+    font-family: inherit;
+    transition: background 0.15s;
+  }
+  .btn-primary:hover { background: var(--primary-dark); }
+
+  /* ===== HERO ===== */
+  .hero {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 80px 24px 60px;
+    text-align: center;
+  }
+  .hero-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: var(--primary-soft);
+    color: var(--primary);
+    padding: 5px 14px;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 600;
+    margin-bottom: 28px;
+  }
+  .hero-badge .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--primary); }
+  .hero h1 {
+    font-size: clamp(36px, 6vw, 66px);
+    font-weight: 900;
+    letter-spacing: -0.03em;
+    line-height: 1.05;
+    color: var(--ink);
+    margin-bottom: 22px;
+  }
+  .hero h1 span { color: var(--primary); }
+  .hero p {
+    font-size: clamp(16px, 2vw, 20px);
+    color: var(--ink-3);
+    line-height: 1.6;
+    max-width: 600px;
+    margin: 0 auto 36px;
+  }
+  .hero-actions {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+    flex-wrap: wrap;
     margin-bottom: 16px;
   }
-  .drawer-specs {
-    display: flex;
-    gap: 16px;
-    padding: 12px 0;
-    border-top: 1px solid var(--border);
-    border-bottom: 1px solid var(--border);
-    margin-bottom: 20px;
-    font-size: 13px;
+  .btn-hero {
+    padding: 14px 28px;
+    border-radius: 9px;
+    font-size: 16px;
+    font-weight: 700;
+    cursor: pointer;
+    font-family: inherit;
+    transition: all 0.15s;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
   }
-  .drawer-specs > div { color: var(--ink-2); }
-  .drawer-specs strong { color: var(--ink); font-weight: 700; font-size: 16px; display: block; }
-  .drawer-specs .label { font-size: 11px; color: var(--ink-3); text-transform: uppercase; letter-spacing: 0.04em; }
-
-  /* Score block */
-  .score-block {
-    background: linear-gradient(135deg, #1e5fd9, #1849b8);
+  .btn-hero.primary {
+    background: var(--primary);
     color: white;
-    border-radius: 10px;
-    padding: 20px;
-    margin-bottom: 20px;
-    position: relative;
+    border: none;
+    box-shadow: 0 4px 16px rgba(30,95,217,0.3);
+  }
+  .btn-hero.primary:hover { background: var(--primary-dark); transform: translateY(-1px); box-shadow: 0 6px 20px rgba(30,95,217,0.35); }
+  .btn-hero.secondary {
+    background: var(--surface);
+    color: var(--ink-2);
+    border: 1.5px solid var(--border);
+  }
+  .btn-hero.secondary:hover { background: var(--bg); }
+  .hero-note { font-size: 13px; color: var(--ink-4); }
+
+  /* ===== APP PREVIEW ===== */
+  .preview-wrap {
+    max-width: 1100px;
+    margin: 0 auto 80px;
+    padding: 0 24px;
+  }
+  .preview-frame {
+    border-radius: 14px;
     overflow: hidden;
+    border: 1px solid var(--border);
+    box-shadow: 0 20px 60px rgba(0,0,0,0.1), 0 4px 16px rgba(0,0,0,0.06);
+    background: #f5f7fa;
   }
-  .score-block::before {
-    content: '';
-    position: absolute;
-    top: -50%;
-    right: -20%;
-    width: 200px;
-    height: 200px;
-    background: radial-gradient(circle, rgba(255,255,255,0.15), transparent 60%);
+  .preview-bar {
+    background: #e8eaed;
+    padding: 10px 14px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
   }
-  .score-block .label {
-    font-size: 11px;
+  .preview-dot { width: 11px; height: 11px; border-radius: 50%; }
+
+  /* Fake app screenshot */
+  .fake-app {
+    background: #f5f7fa;
+    font-family: 'Inter', sans-serif;
+    font-size: 12px;
+  }
+  .fake-topbar {
+    height: 48px;
+    background: white;
+    border-bottom: 1px solid #e2e6ed;
+    display: flex;
+    align-items: center;
+    padding: 0 16px;
+    gap: 16px;
+  }
+  .fake-brand { font-weight: 800; font-size: 15px; display: flex; align-items: center; gap: 6px; }
+  .fake-brand-mark { width: 22px; height: 22px; background: #1e5fd9; border-radius: 5px; display: grid; place-items: center; color: white; font-size: 11px; font-weight: 800; }
+  .fake-tabs { display: flex; gap: 2px; margin-left: 6px; }
+  .fake-tab { padding: 5px 10px; border-radius: 5px; font-size: 11px; font-weight: 500; color: #4a5568; }
+  .fake-tab.active { background: #e8f0ff; color: #1e5fd9; font-weight: 600; }
+  .fake-searchbar { height: 40px; background: white; border-bottom: 1px solid #e2e6ed; display: flex; align-items: center; padding: 0 16px; gap: 8px; }
+  .fake-search { flex: 0 0 240px; height: 28px; background: #f9fafc; border: 1px solid #e2e6ed; border-radius: 5px; padding: 0 10px; font-size: 11px; color: #718096; display: flex; align-items: center; }
+  .fake-filter { height: 28px; padding: 0 10px; background: #e8f0ff; border: 1px solid #1e5fd9; border-radius: 5px; color: #1e5fd9; font-size: 11px; font-weight: 600; display: flex; align-items: center; gap: 4px; }
+  .fake-filter-plain { height: 28px; padding: 0 10px; background: white; border: 1px solid #e2e6ed; border-radius: 5px; color: #4a5568; font-size: 11px; display: flex; align-items: center; gap: 3px; }
+  .fake-body { display: grid; grid-template-columns: 1fr 1fr; height: 320px; }
+  .fake-list { background: white; border-right: 1px solid #e2e6ed; overflow: hidden; }
+  .fake-list-header { padding: 8px 14px; border-bottom: 1px solid #e2e6ed; display: flex; justify-content: space-between; align-items: center; }
+  .fake-row { padding: 10px 14px; border-bottom: 1px solid #e2e6ed; display: flex; gap: 10px; cursor: pointer; }
+  .fake-row.sel { background: #e8f0ff; border-left: 3px solid #1e5fd9; }
+  .fake-row-thumb { flex: 0 0 70px; aspect-ratio: 4/3; border-radius: 4px; overflow: hidden; }
+  .fake-row-body { flex: 1; }
+  .fake-row-price { font-weight: 700; font-size: 13px; }
+  .fake-row-addr { font-size: 10px; color: #718096; margin: 2px 0 5px; }
+  .fake-pill { display: inline-flex; padding: 2px 6px; border-radius: 3px; font-size: 9px; font-weight: 600; margin-right: 3px; }
+  .fake-pill.a { background: #dcfce7; color: #16a34a; }
+  .fake-pill.pos { background: #dcfce7; color: #16a34a; }
+  .fake-pill.neu { background: #f1f5f9; color: #64748b; }
+  .fake-map { background: #e8eef5; position: relative; overflow: hidden; }
+  .fake-map-pin { position: absolute; background: white; border: 2px solid #1e5fd9; border-radius: 10px; padding: 3px 8px; font-size: 10px; font-weight: 700; color: #1e5fd9; white-space: nowrap; }
+  .fake-map-pin.a { border-color: #16a34a; color: #16a34a; }
+  .fake-map-pin.sel { background: #1e5fd9; color: white; }
+  .fake-stat-box { position: absolute; top: 10px; left: 10px; background: white; border: 1px solid #e2e6ed; border-radius: 6px; padding: 8px 12px; display: flex; gap: 14px; font-size: 10px; }
+  .fake-stat-label { color: #718096; font-size: 9px; text-transform: uppercase; letter-spacing: 0.04em; }
+  .fake-stat-val { font-weight: 700; font-size: 13px; }
+  .fake-stat-val.g { color: #16a34a; }
+
+  /* ===== STATS BAR ===== */
+  .stats-bar {
+    background: var(--ink);
+    padding: 32px 24px;
+  }
+  .stats-bar-inner {
+    max-width: 900px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 24px;
+    text-align: center;
+  }
+  .stat-item .num {
+    font-size: 36px;
+    font-weight: 800;
+    color: white;
+    letter-spacing: -0.02em;
+    display: block;
+  }
+  .stat-item .lbl {
+    font-size: 13px;
+    color: #94a3b8;
+    margin-top: 4px;
+    display: block;
+  }
+
+  /* ===== SECTIONS ===== */
+  section { padding: 80px 24px; }
+  .section-inner { max-width: 1100px; margin: 0 auto; }
+  .section-tag {
+    font-size: 12px;
+    font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.08em;
-    opacity: 0.8;
-    margin-bottom: 4px;
+    color: var(--primary);
+    margin-bottom: 12px;
   }
-  .score-block .num {
-    font-size: 56px;
+  .section-title {
+    font-size: clamp(26px, 4vw, 40px);
     font-weight: 800;
-    line-height: 1;
-    letter-spacing: -0.03em;
+    letter-spacing: -0.02em;
+    line-height: 1.15;
+    color: var(--ink);
+    margin-bottom: 16px;
   }
-  .score-block .num .out { font-size: 20px; opacity: 0.6; font-weight: 500; }
-  .score-block .desc {
-    font-size: 13px;
-    opacity: 0.9;
-    margin-top: 6px;
+  .section-sub {
+    font-size: 17px;
+    color: var(--ink-3);
+    line-height: 1.6;
+    max-width: 560px;
+  }
+
+  /* ===== PROBLEM ===== */
+  .problem { background: var(--bg); }
+  .problem-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+    margin-top: 48px;
+  }
+  .problem-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 28px;
+  }
+  .problem-card.bad { border-color: #fca5a5; }
+  .problem-card.good { border-color: #86efac; }
+  .problem-card-label {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .problem-card.bad .problem-card-label { color: #dc2626; }
+  .problem-card.good .problem-card-label { color: var(--pos); }
+  .problem-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--border);
+    font-size: 14px;
+    color: var(--ink-2);
+    line-height: 1.5;
+  }
+  .problem-item:last-child { border-bottom: none; }
+  .problem-item .icon { flex-shrink: 0; font-size: 16px; margin-top: 1px; }
+
+  /* ===== FEATURES ===== */
+  .features-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 24px;
+    margin-top: 48px;
+  }
+  .feature-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 28px;
+    transition: box-shadow 0.2s, transform 0.2s;
+  }
+  .feature-card:hover { box-shadow: 0 8px 24px rgba(0,0,0,0.08); transform: translateY(-2px); }
+  .feature-icon {
+    width: 44px;
+    height: 44px;
+    border-radius: 10px;
+    background: var(--primary-soft);
+    display: grid;
+    place-items: center;
+    font-size: 22px;
+    margin-bottom: 16px;
+  }
+  .feature-card h3 { font-size: 17px; font-weight: 700; margin-bottom: 8px; }
+  .feature-card p { font-size: 14px; color: var(--ink-3); line-height: 1.6; }
+
+  /* ===== HOW IT WORKS ===== */
+  .how { background: var(--bg); }
+  .steps {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 32px;
+    margin-top: 48px;
     position: relative;
   }
-
-  /* Section */
-  .section { margin-bottom: 24px; }
-  .section h4 {
-    font-size: 12px;
-    text-transform: uppercase;
-    letter-spacing: 0.06em;
-    color: var(--ink-3);
-    font-weight: 700;
-    margin-bottom: 10px;
+  .steps::before {
+    content: '';
+    position: absolute;
+    top: 28px;
+    left: calc(16.66% + 16px);
+    right: calc(16.66% + 16px);
+    height: 2px;
+    background: linear-gradient(to right, var(--primary), #9333ea);
+    opacity: 0.2;
   }
-
-  /* Score components */
-  .components {
-    background: var(--surface-2);
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    padding: 14px 16px;
-  }
-  .comp-row {
-    display: grid;
-    grid-template-columns: 140px 1fr 36px;
-    align-items: center;
-    gap: 12px;
-    padding: 8px 0;
-    border-bottom: 1px solid var(--border);
-    font-size: 13px;
-  }
-  .comp-row:last-child { border-bottom: none; }
-  .comp-label { color: var(--ink-2); font-weight: 500; }
-  .comp-bar {
-    height: 6px;
-    background: #e2e8f0;
-    border-radius: 3px;
-    overflow: hidden;
-  }
-  .comp-fill {
-    height: 100%;
-    background: var(--primary);
-    border-radius: 3px;
-  }
-  .comp-fill.high { background: var(--pos); }
-  .comp-fill.low { background: var(--warn); }
-  .comp-num {
-    text-align: right;
-    font-weight: 700;
-    color: var(--ink);
-    font-variant-numeric: tabular-nums;
-  }
-
-  /* Data table */
-  .data-table {
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    overflow: hidden;
-  }
-  .data-row {
-    display: flex;
-    justify-content: space-between;
-    padding: 10px 14px;
-    font-size: 13px;
-    border-bottom: 1px solid var(--border);
-  }
-  .data-row:last-child { border-bottom: none; }
-  .data-row:nth-child(even) { background: var(--surface-2); }
-  .data-row .k { color: var(--ink-2); }
-  .data-row .v { font-weight: 600; color: var(--ink); font-variant-numeric: tabular-nums; }
-  .data-row .v.pos { color: var(--pos); }
-  .data-row .v.neg { color: var(--neg); }
-
-  /* Insights */
-  .insight {
-    display: flex;
-    gap: 10px;
-    padding: 10px 12px;
-    background: var(--surface-2);
-    border: 1px solid var(--border);
-    border-left: 3px solid var(--primary);
-    border-radius: 6px;
-    margin-bottom: 8px;
-    font-size: 13px;
-    line-height: 1.5;
-    color: var(--ink-2);
-  }
-  .insight.pos { border-left-color: var(--pos); }
-  .insight.warn { border-left-color: var(--warn); }
-  .insight.neg { border-left-color: var(--neg); }
-  .insight-icon {
-    flex: 0 0 18px;
-    height: 18px;
+  .step { text-align: center; }
+  .step-num {
+    width: 56px;
+    height: 56px;
     border-radius: 50%;
     background: var(--primary);
     color: white;
     display: grid;
     place-items: center;
+    font-size: 20px;
+    font-weight: 800;
+    margin: 0 auto 20px;
+    position: relative;
+    z-index: 1;
+  }
+  .step h3 { font-size: 18px; font-weight: 700; margin-bottom: 10px; }
+  .step p { font-size: 14px; color: var(--ink-3); line-height: 1.6; }
+
+  /* ===== PRICING ===== */
+  .pricing-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+    margin-top: 48px;
+    align-items: start;
+  }
+  .pricing-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 28px;
+  }
+  .pricing-card.featured {
+    border-color: var(--primary);
+    border-width: 2px;
+    position: relative;
+  }
+  .pricing-badge {
+    position: absolute;
+    top: -12px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--primary);
+    color: white;
+    padding: 4px 14px;
+    border-radius: 20px;
     font-size: 11px;
     font-weight: 700;
+    white-space: nowrap;
   }
-  .insight.pos .insight-icon { background: var(--pos); }
-  .insight.warn .insight-icon { background: var(--warn); }
-  .insight.neg .insight-icon { background: var(--neg); }
-
-  /* Comps */
-  .comps-table {
-    width: 100%;
-    border-collapse: collapse;
-    font-size: 12px;
-  }
-  .comps-table th {
-    text-align: left;
-    padding: 8px 10px;
-    background: var(--surface-2);
-    color: var(--ink-3);
-    font-weight: 600;
-    text-transform: uppercase;
-    font-size: 10px;
-    letter-spacing: 0.05em;
-    border-bottom: 1px solid var(--border);
-  }
-  .comps-table td {
-    padding: 9px 10px;
-    border-bottom: 1px solid var(--border);
-    color: var(--ink-2);
-  }
-  .comps-table td.num { font-variant-numeric: tabular-nums; font-weight: 600; color: var(--ink); text-align: right; }
-
-  /* ===== SCROLLBAR ===== */
-  ::-webkit-scrollbar { width: 8px; height: 8px; }
-  ::-webkit-scrollbar-track { background: transparent; }
-  ::-webkit-scrollbar-thumb { background: var(--border-dark); border-radius: 4px; }
-  ::-webkit-scrollbar-thumb:hover { background: var(--ink-4); }
-
-  /* ===== DROPDOWNS ===== */
-  .dropdown {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    box-shadow: 0 4px 20px rgba(0,0,0,0.14);
-    z-index: 100;
-    min-width: 220px;
-    padding: 14px 16px;
-  }
-  .dropdown h5 {
-    font-size: 10px;
-    text-transform: uppercase;
-    letter-spacing: 0.07em;
-    color: var(--ink-3);
-    margin-bottom: 10px;
-    font-weight: 700;
-  }
-  .dd-2col { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-  .dd-2col label, .dropdown > label { font-size: 11px; color: var(--ink-3); display: block; margin-bottom: 3px; font-weight: 500; }
-  .dd-2col input, .dd-2col select {
-    width: 100%;
-    height: 30px;
-    padding: 0 8px;
-    border: 1px solid var(--border);
-    border-radius: 5px;
-    background: var(--surface);
-    font-size: 13px;
+  .pricing-name { font-size: 14px; font-weight: 600; color: var(--ink-3); margin-bottom: 8px; }
+  .pricing-price {
+    font-size: 42px;
+    font-weight: 800;
+    letter-spacing: -0.02em;
     color: var(--ink);
-    outline: none;
-    font-family: inherit;
+    line-height: 1;
+    margin-bottom: 4px;
   }
-  .dd-2col input:focus, .dd-2col select:focus { border-color: var(--primary); }
-  .dd-check {
+  .pricing-price span { font-size: 18px; font-weight: 500; color: var(--ink-3); }
+  .pricing-desc { font-size: 13px; color: var(--ink-3); margin-bottom: 24px; }
+  .pricing-cta {
+    width: 100%;
+    padding: 11px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    font-family: inherit;
+    margin-bottom: 24px;
+    transition: all 0.15s;
+  }
+  .pricing-cta.outline { background: var(--surface); border: 1.5px solid var(--border); color: var(--ink-2); }
+  .pricing-cta.outline:hover { background: var(--bg); }
+  .pricing-cta.filled { background: var(--primary); border: none; color: white; box-shadow: 0 2px 8px rgba(30,95,217,0.25); }
+  .pricing-cta.filled:hover { background: var(--primary-dark); }
+  .pricing-feature {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 7px 0;
+    font-size: 13px;
+    color: var(--ink-2);
+    border-bottom: 1px solid var(--border);
+  }
+  .pricing-feature:last-child { border-bottom: none; }
+  .pricing-feature .chk { color: var(--pos); font-weight: 700; flex-shrink: 0; }
+  .pricing-feature .x { color: var(--ink-4); flex-shrink: 0; }
+
+  /* ===== FINAL CTA ===== */
+  .final-cta {
+    background: linear-gradient(135deg, #0f172a, #1e3a6e);
+    text-align: center;
+    padding: 100px 24px;
+  }
+  .final-cta h2 {
+    font-size: clamp(28px, 5vw, 48px);
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    color: white;
+    margin-bottom: 16px;
+  }
+  .final-cta p { font-size: 18px; color: #94a3b8; margin-bottom: 36px; }
+
+  /* ===== FOOTER ===== */
+  footer {
+    background: var(--ink);
+    padding: 40px 24px;
     display: flex;
     align-items: center;
-    gap: 8px;
-    padding: 6px 0;
-    font-size: 13px;
-    color: var(--ink-2);
-    cursor: pointer;
-    border-bottom: 1px solid var(--border);
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 16px;
   }
-  .dd-check:last-of-type { border-bottom: none; }
-  .dd-check input[type=checkbox] { accent-color: var(--primary); width: 14px; height: 14px; cursor: pointer; }
-  .dd-footer { display: flex; gap: 8px; margin-top: 12px; padding-top: 10px; border-top: 1px solid var(--border); }
-  .dd-clear { flex: 1; height: 30px; background: var(--surface); border: 1px solid var(--border); border-radius: 5px; font-size: 12px; color: var(--ink-2); cursor: pointer; font-family: inherit; }
-  .dd-clear:hover { background: var(--surface-2); }
-  .dd-apply { flex: 2; height: 30px; background: var(--primary); border: none; border-radius: 5px; font-size: 12px; font-weight: 600; color: white; cursor: pointer; font-family: inherit; }
-  .dd-apply:hover { background: var(--primary-dark); }
+  footer .brand { display: flex; align-items: center; gap: 8px; font-weight: 700; color: white; font-size: 15px; }
+  footer .brand-mark { width: 24px; height: 24px; background: var(--primary); border-radius: 5px; display: grid; place-items: center; color: white; font-size: 12px; font-weight: 800; }
+  footer .links { display: flex; gap: 20px; }
+  footer .links a { font-size: 13px; color: #64748b; transition: color 0.15s; }
+  footer .links a:hover { color: #94a3b8; }
+  footer .copy { font-size: 12px; color: #475569; }
 
   /* ===== RESPONSIVE ===== */
-  @media (max-width: 900px) {
-    .main { grid-template-columns: 1fr; }
-    .map-panel { display: none; }
-    .nav-tabs { display: none; }
-    .drawer { width: 100%; right: -100%; }
-    .drawer.open { right: 0; }
-    .search-box { flex: 1; }
+  @media (max-width: 768px) {
+    .problem-grid, .features-grid, .steps, .pricing-grid { grid-template-columns: 1fr; }
+    .steps::before { display: none; }
+    .stats-bar-inner { grid-template-columns: repeat(2, 1fr); }
+    .fake-body { grid-template-columns: 1fr; }
+    .fake-map { display: none; }
+    nav .nav-links { display: none; }
+    footer { flex-direction: column; align-items: flex-start; }
   }
 </style>
 </head>
 <body>
 
-<!-- TOP BAR -->
-<header class="topbar">
-  <div class="brand">
-    <div class="brand-mark">D</div>
+<!-- NAV -->
+<nav>
+  <div class="nav-brand">
+    <div class="nav-brand-mark">D</div>
     DealScope
   </div>
-  <nav class="nav-tabs">
-    <button class="nav-tab active">Properties</button>
-    <button class="nav-tab">Lists</button>
-    <button class="nav-tab">Markets</button>
-    <button class="nav-tab">Comps</button>
-    <button class="nav-tab">Reports</button>
-  </nav>
-  <div class="topbar-right">
-    <div class="credits">Credits: <strong>847</strong> / 1,000</div>
-    <button class="filter-btn">Upgrade</button>
-    <div class="avatar">BJ</div>
+  <div class="nav-links">
+    <a href="#features">Features</a>
+    <a href="#how">How it works</a>
+    <a href="#pricing">Pricing</a>
   </div>
-</header>
+  <div class="nav-cta">
+    <a href="app.html"><button class="btn-ghost">Sign in</button></a>
+    <a href="app.html"><button class="btn-primary">Get started free</button></a>
+  </div>
+</nav>
 
-<!-- SEARCH BAR -->
-<div class="searchbar">
-  <input type="text" class="search-box" id="search" placeholder="Search address, city, ZIP, or county..."/>
-
-  <button class="filter-btn active" data-filter-toggle onclick="clearF('all')">
-    Filters <span class="count">0</span>
-  </button>
-
-  <button class="filter-btn" onclick="openDD(this,'price')">Price <span class="chev">▾</span></button>
-  <button class="filter-btn" onclick="openDD(this,'beds')">Beds/Baths <span class="chev">▾</span></button>
-  <button class="filter-btn" onclick="openDD(this,'cap')">Cap Rate <span class="chev">▾</span></button>
-  <button class="filter-btn" onclick="openDD(this,'strategy')">Strategy <span class="chev">▾</span></button>
-  <button class="filter-btn" onclick="openDD(this,'score')">DealScore <span class="chev">▾</span></button>
-  <button class="filter-btn" onclick="openDD(this,'status')">Status <span class="chev">▾</span></button>
-  <button class="filter-btn" onclick="openDD(this,'more')">More <span class="chev">▾</span></button>
-
-  <div class="divider"></div>
-
-  <button class="save-search">+ Save Search</button>
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-badge"><span class="dot"></span> Built for proactive investors</div>
+  <h1>Find Investment Deals.<br/><span>No Realtor Required.</span></h1>
+  <p>DealScope scores every property on the market so you can spot the best deals — before your inbox fills up with broker spam.</p>
+  <div class="hero-actions">
+    <a href="app.html"><button class="btn-hero primary">Start for free →</button></a>
+    <a href="#how"><button class="btn-hero secondary">See how it works</button></a>
+  </div>
+  <div class="hero-note">No credit card required &nbsp;·&nbsp; Free plan available</div>
 </div>
 
-<!-- MAIN -->
-<main class="main">
-
-  <!-- LEFT: RESULTS LIST -->
-  <section class="results-panel">
-    <div class="results-header">
-      <div class="count"><strong id="resultCount">12</strong> properties · <span style="color: var(--pos);">9 above 75 DealScore</span></div>
-      <div class="controls">
-        <select class="sort-select" id="sortBy">
-          <option value="score">Sort: DealScore (high)</option>
-          <option value="price-asc">Price (low → high)</option>
-          <option value="price-desc">Price (high → low)</option>
-          <option value="cap">Cap rate</option>
-          <option value="discount">% below comp</option>
-          <option value="dom">Days on market</option>
-        </select>
-        <div class="view-toggle">
-          <button class="active" title="List">≡</button>
-          <button title="Grid">▦</button>
-        </div>
-      </div>
+<!-- APP PREVIEW -->
+<div class="preview-wrap">
+  <div class="preview-frame">
+    <div class="preview-bar">
+      <div class="preview-dot" style="background:#ff5f57"></div>
+      <div class="preview-dot" style="background:#febc2e"></div>
+      <div class="preview-dot" style="background:#28c840"></div>
+      <div style="flex:1;margin-left:8px;background:#fff;border-radius:4px;height:20px;display:flex;align-items:center;padding:0 10px;font-size:11px;color:#94a3b8;max-width:300px;">dealscope.io/app</div>
     </div>
-    <div class="results-list" id="resultsList"></div>
-  </section>
-
-  <!-- RIGHT: MAP -->
-  <section class="map-panel">
-    <div class="map" id="map">
-      <div class="map-overlay-stats">
-        <div class="map-stat">
-          <div class="label">Median DealScore</div>
-          <div class="val pos">82</div>
+    <div class="fake-app">
+      <div class="fake-topbar">
+        <div class="fake-brand"><div class="fake-brand-mark">D</div>DealScope</div>
+        <div class="fake-tabs">
+          <div class="fake-tab active">Properties</div>
+          <div class="fake-tab">Lists</div>
+          <div class="fake-tab">Markets</div>
+          <div class="fake-tab">Reports</div>
         </div>
-        <div class="map-stat">
-          <div class="label">Avg cap rate</div>
-          <div class="val">7.4%</div>
+        <div style="margin-left:auto;background:#f1f5f9;border-radius:4px;padding:3px 10px;font-size:10px;color:#64748b;">Credits: <strong style="color:#0f172a">847</strong></div>
+      </div>
+      <div class="fake-searchbar">
+        <div class="fake-search">🔍 &nbsp;Search city, ZIP, or county...</div>
+        <div class="fake-filter">Filters <span style="background:#1e5fd9;color:white;border-radius:8px;padding:1px 5px;font-size:9px;margin-left:2px;">4</span></div>
+        <div class="fake-filter-plain">Cap Rate ▾</div>
+        <div class="fake-filter-plain">DealScore ▾</div>
+        <div class="fake-filter-plain">Strategy ▾</div>
+        <div style="margin-left:auto;background:#1e5fd9;color:white;border-radius:5px;padding:4px 10px;font-size:10px;font-weight:600;">+ Save Search</div>
+      </div>
+      <div class="fake-body">
+        <div class="fake-list">
+          <div class="fake-list-header">
+            <span style="color:#64748b;"><strong style="color:#0f172a;font-size:13px;">12</strong> properties · <span style="color:#16a34a;">9 above 75</span></span>
+            <span style="font-size:10px;color:#94a3b8;">Sort: DealScore ▾</span>
+          </div>
+          <div class="fake-row sel">
+            <div class="fake-row-thumb">
+              <svg viewBox="0 0 70 52" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:100%;">
+                <rect width="70" height="52" fill="#a8c5e0"/>
+                <rect x="0" y="38" width="70" height="14" fill="#94a37a"/>
+                <rect x="18" y="24" width="34" height="16" fill="#c4a584"/>
+                <polygon points="18,24 35,14 52,24" fill="#7a3e2c"/>
+                <rect x="28" y="30" width="10" height="10" fill="#3d3833"/>
+              </svg>
+            </div>
+            <div class="fake-row-body">
+              <div style="display:flex;justify-content:space-between;align-items:center;">
+                <div class="fake-row-price">$128,000</div>
+                <div class="fake-pill a">A · 94</div>
+              </div>
+              <div class="fake-row-addr">3304 Hawthorne Ave, Cleveland, OH</div>
+              <div><span class="fake-pill pos">−15.8% comp</span><span class="fake-pill neu">Cap 11.8%</span><span class="fake-pill pos">CoC 18.4%</span></div>
+            </div>
+          </div>
+          <div class="fake-row">
+            <div class="fake-row-thumb">
+              <svg viewBox="0 0 70 52" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:100%;">
+                <rect width="70" height="52" fill="#bcc8d0"/>
+                <rect x="0" y="38" width="70" height="14" fill="#7a8a78"/>
+                <rect x="16" y="24" width="38" height="16" fill="#9eaab0"/>
+                <polygon points="16,24 35,13 54,24" fill="#3d4a5c"/>
+                <rect x="28" y="30" width="10" height="10" fill="#1f2937"/>
+              </svg>
+            </div>
+            <div class="fake-row-body">
+              <div style="display:flex;justify-content:space-between;align-items:center;">
+                <div class="fake-row-price">$425,000</div>
+                <div class="fake-pill a">A · 91</div>
+              </div>
+              <div class="fake-row-addr">2847 Maple Creek Dr, Provo, UT</div>
+              <div><span class="fake-pill pos">−11.1% comp</span><span class="fake-pill neu">Cap 7.4%</span></div>
+            </div>
+          </div>
+          <div class="fake-row">
+            <div class="fake-row-thumb">
+              <svg viewBox="0 0 70 52" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:100%;">
+                <rect width="70" height="52" fill="#b8c8d8"/>
+                <rect x="0" y="38" width="70" height="14" fill="#a89878"/>
+                <rect x="18" y="24" width="34" height="16" fill="#d8c8a8"/>
+                <polygon points="18,24 35,14 52,24" fill="#5a3826"/>
+                <rect x="28" y="30" width="10" height="10" fill="#2c2218"/>
+              </svg>
+            </div>
+            <div class="fake-row-body">
+              <div style="display:flex;justify-content:space-between;align-items:center;">
+                <div class="fake-row-price">$358,000</div>
+                <div class="fake-pill a">A · 87</div>
+              </div>
+              <div class="fake-row-addr">1142 W 800 S, Salt Lake City, UT</div>
+              <div><span class="fake-pill pos">−8.7% comp</span><span class="fake-pill neu">Cap 8.1%</span></div>
+            </div>
+          </div>
         </div>
-        <div class="map-stat">
-          <div class="label">Median price</div>
-          <div class="val">$342k</div>
+        <div class="fake-map">
+          <div style="width:100%;height:100%;background:linear-gradient(135deg,#e8eef5,#d8e2ec);position:relative;">
+            <div class="fake-stat-box">
+              <div><div class="fake-stat-label">Median DealScore</div><div class="fake-stat-val g">82</div></div>
+              <div><div class="fake-stat-label">Avg Cap Rate</div><div class="fake-stat-val">7.4%</div></div>
+              <div><div class="fake-stat-label">Median Price</div><div class="fake-stat-val">$342k</div></div>
+            </div>
+            <div class="fake-map-pin sel" style="top:22%;left:42%;">$128k</div>
+            <div class="fake-map-pin a" style="top:38%;left:18%;">$425k</div>
+            <div class="fake-map-pin" style="top:55%;left:28%;">$285k</div>
+            <div class="fake-map-pin a" style="top:65%;left:60%;">$178k</div>
+            <div class="fake-map-pin" style="top:48%;left:70%;">$342k</div>
+            <div class="fake-map-pin a" style="top:30%;left:55%;">$398k</div>
+          </div>
         </div>
       </div>
-
-      <div class="map-controls">
-        <button class="map-btn" onclick="map&&map.zoomIn()">+</button>
-        <button class="map-btn" onclick="map&&map.zoomOut()">−</button>
-        <button class="map-btn" title="Fit all" onclick="fitAll()">⊙</button>
-      </div>
-
-      <div class="map-legend">
-        <span style="font-weight: 600; color: var(--ink); margin-right: 4px;">DealScore:</span>
-        <div class="legend-item"><span class="legend-dot" style="background: var(--tier-a-bg)"></span>85+ (A)</div>
-        <div class="legend-item"><span class="legend-dot" style="background: var(--tier-b-bg)"></span>70-84 (B)</div>
-        <div class="legend-item"><span class="legend-dot" style="background: var(--tier-c-bg)"></span>55-69 (C)</div>
-      </div>
-    </div>
-  </section>
-
-</main>
-
-<!-- DETAIL DRAWER -->
-<aside class="drawer" id="drawer">
-  <div class="drawer-header">
-    <button class="drawer-close" onclick="closeDrawer()">×</button>
-    <div class="drawer-actions">
-      <button class="drawer-action">☆ Save</button>
-      <button class="drawer-action">+ List</button>
-      <button class="drawer-action" onclick="exportCSV()">⤓ Export</button>
-      <button class="drawer-action primary">Skip Trace</button>
     </div>
   </div>
-  <div id="drawerContent"></div>
-</aside>
+</div>
 
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-<script>
-  // ===== DATA =====
-  const properties = [
-    {
-      id: 1, lat: 41.4555, lng: -81.7023, addr: '3304 Hawthorne Ave', city: 'Cleveland', state: 'OH', zip: '44109',
-      price: 128000, comp: 152000, sqft: 1420, lot: 0.14, beds: 3, baths: 2, year: 1924, type: 'SFR',
-      rent: 1650, taxes: 2200, insurance: 950, hoa: 0,
-      score: 94, grade: 'A', strategy: ['cashflow', 'brrrr'], status: 'Active',
-      cap: 11.8, coc: 18.4, dom: 8, discount: 15.8,
-      mapX: 78, mapY: 22, imgV: 0,
-      owner: 'Marcus L. Reeves', ownerType: 'Individual', equity: 78,
-      tagline: 'Top cash flow · BRRRR',
-      insights: [
-        { type: 'pos', text: 'Cap rate of 11.8% places this in the top decile for SFR rentals nationwide.' },
-        { type: 'pos', text: '$18k cosmetic rehab could push rent +$220/mo per local comp analysis.' },
-        { type: 'warn', text: 'Tertiary market — exit liquidity slower than Tier 1 metros.' }
-      ]
-    },
-    {
-      id: 2, lat: 40.2530, lng: -111.6486, addr: '2847 Maple Creek Dr', city: 'Provo', state: 'UT', zip: '84604',
-      price: 425000, comp: 478000, sqft: 2240, lot: 0.22, beds: 4, baths: 3, year: 2008, type: 'SFR',
-      rent: 2850, taxes: 3100, insurance: 1400, hoa: 0,
-      score: 91, grade: 'A', strategy: ['undervalued', 'brrrr'], status: 'Active',
-      cap: 7.4, coc: 11.2, dom: 47, discount: 11.1,
-      mapX: 18, mapY: 58, imgV: 1,
-      owner: 'Thornton Family Trust', ownerType: 'Trust', equity: 64,
-      tagline: 'BRRRR candidate',
-      insights: [
-        { type: 'pos', text: '11% below 90-day Provo comps avg ($478k for similar inventory).' },
-        { type: 'pos', text: '$35k rehab targets ARV $520k — BRRRR refi nets approx $78k cash-out.' },
-        { type: 'warn', text: '47 DOM — seller likely accepts 5-8% under ask.' }
-      ]
-    },
-    {
-      id: 3, lat: 40.7447, lng: -111.9200, addr: '1142 W 800 S', city: 'Salt Lake City', state: 'UT', zip: '84104',
-      price: 358000, comp: 392000, sqft: 1680, lot: 0.11, beds: 3, baths: 2, year: 1978, type: 'SFR',
-      rent: 2400, taxes: 2400, insurance: 1100, hoa: 0,
-      score: 87, grade: 'A', strategy: ['cashflow', 'undervalued'], status: 'Active',
-      cap: 8.1, coc: 13.4, dom: 12, discount: 8.7,
-      mapX: 14, mapY: 48, imgV: 2,
-      owner: 'Jeremy Vasquez', ownerType: 'Individual', equity: 82,
-      tagline: 'Cash flow · ADU potential',
-      insights: [
-        { type: 'pos', text: 'Cap rate 8.1% — top decile for SLC metro.' },
-        { type: 'pos', text: 'Walkout basement separable for ADU income (+$800/mo potential).' },
-        { type: 'warn', text: 'Roof est 18+ years — inspection priority.' }
-      ]
-    },
-    {
-      id: 4, lat: 29.7752, lng: -95.4019, addr: '906 Sycamore Pl', city: 'Houston', state: 'TX', zip: '77008',
-      price: 285000, comp: 318000, sqft: 1560, lot: 0.13, beds: 3, baths: 2, year: 1962, type: 'SFR',
-      rent: 2050, taxes: 5400, insurance: 1600, hoa: 0,
-      score: 84, grade: 'A', strategy: ['flip', 'brrrr'], status: 'Active',
-      cap: 6.1, coc: 8.3, dom: 64, discount: 10.4,
-      mapX: 42, mapY: 78, imgV: 3,
-      owner: 'Estate of D. Patel', ownerType: 'Estate', equity: 100,
-      tagline: 'Flip candidate',
-      insights: [
-        { type: 'pos', text: 'Heights-adjacent — $42k rehab targets ARV $385k (est. $58k profit).' },
-        { type: 'pos', text: 'Seller motivated: relisted 2x, owner-occupied vacant.' },
-        { type: 'neg', text: 'Foundation inspection recommended (1960s Houston clay).' }
-      ]
-    },
-    {
-      id: 5, lat: 40.6335, lng: -111.9005, addr: '233 W 4500 S', city: 'Murray', state: 'UT', zip: '84107',
-      price: 445000, comp: 472000, sqft: 2110, lot: 0.18, beds: 4, baths: 2, year: 1979, type: 'SFR',
-      rent: 2750, taxes: 2900, insurance: 1300, hoa: 0,
-      score: 83, grade: 'A', strategy: ['cashflow', 'brrrr'], status: 'Active',
-      cap: 6.7, coc: 9.5, dom: 24, discount: 5.7,
-      mapX: 16, mapY: 52, imgV: 0,
-      owner: 'Patricia Ann Holm', ownerType: 'Individual', equity: 55,
-      tagline: 'Basement ADU ready',
-      insights: [
-        { type: 'pos', text: 'Walkout basement turnkey for legal ADU conversion (+$1,100/mo).' },
-        { type: 'pos', text: 'TRAX light rail 0.4mi — premium tenant draw.' },
-        { type: 'warn', text: 'Original kitchen/baths — $25k cosmetic refresh recommended.' }
-      ]
-    },
-    {
-      id: 6, lat: 35.1269, lng: -80.8789, addr: '7712 Pinewood Ct', city: 'Charlotte', state: 'NC', zip: '28210',
-      price: 342000, comp: 365000, sqft: 1920, lot: 0.16, beds: 4, baths: 2, year: 1995, type: 'SFR',
-      rent: 2200, taxes: 2600, insurance: 1200, hoa: 240,
-      score: 81, grade: 'B', strategy: ['cashflow', 'undervalued'], status: 'Active',
-      cap: 6.9, coc: 9.8, dom: 22, discount: 6.3,
-      mapX: 64, mapY: 56, imgV: 1,
-      owner: 'M&K Rentals LLC', ownerType: 'LLC', equity: 38,
-      tagline: 'Growth market',
-      insights: [
-        { type: 'pos', text: 'Charlotte metro: top 5 net migration in US (2025).' },
-        { type: 'pos', text: 'Below comps by $23k; recent comp sold $371k in 14 days.' },
-        { type: 'warn', text: 'HOA $240/mo — modest drag on cash flow.' }
-      ]
-    },
-    {
-      id: 7, lat: 41.2230, lng: -111.9738, addr: '1287 Birch Hollow', city: 'Ogden', state: 'UT', zip: '84403',
-      price: 312000, comp: 339000, sqft: 1780, lot: 0.15, beds: 3, baths: 2, year: 1988, type: 'SFR',
-      rent: 2100, taxes: 2200, insurance: 1050, hoa: 0,
-      score: 79, grade: 'B', strategy: ['cashflow'], status: 'Active',
-      cap: 7.0, coc: 10.1, dom: 19, discount: 8.0,
-      mapX: 12, mapY: 38, imgV: 2,
-      owner: 'Robert & Susan King', ownerType: 'Individual', equity: 71,
-      tagline: 'Cash flow',
-      insights: [
-        { type: 'pos', text: 'Ogden rental demand strong — Hill AFB proximity drives tenant base.' },
-        { type: 'pos', text: 'Below local cap rate floor (avg 6.2% for area).' },
-        { type: 'warn', text: 'HVAC at end-of-life per listing photos.' }
-      ]
-    },
-    {
-      id: 8, lat: 30.1934, lng: -97.7784, addr: '8821 Brookhollow Ln', city: 'Austin', state: 'TX', zip: '78745',
-      price: 489000, comp: 525000, sqft: 2010, lot: 0.18, beds: 3, baths: 2, year: 2002, type: 'SFR',
-      rent: 2950, taxes: 8800, insurance: 1800, hoa: 0,
-      score: 78, grade: 'B', strategy: ['undervalued'], status: 'Price Cut',
-      cap: 5.2, coc: 7.1, dom: 89, discount: 6.9,
-      mapX: 40, mapY: 72, imgV: 3,
-      owner: 'Thompson Holdings LP', ownerType: 'LP', equity: 45,
-      tagline: 'Undervalued · 2 price cuts',
-      insights: [
-        { type: 'pos', text: '$36k below comp — price reduced twice in last 60 days.' },
-        { type: 'neg', text: 'TX property taxes ($8.8k/yr) compress cash flow significantly.' },
-        { type: 'warn', text: 'Austin market cooling — model 1-3% near-term softness.' }
-      ]
-    },
-    {
-      id: 9, lat: 30.3322, lng: -81.6557, addr: '442 E 11th St', city: 'Jacksonville', state: 'FL', zip: '32206',
-      price: 178000, comp: 198000, sqft: 1320, lot: 0.12, beds: 3, baths: 1, year: 1948, type: 'SFR',
-      rent: 1750, taxes: 1900, insurance: 2400, hoa: 0,
-      score: 76, grade: 'B', strategy: ['brrrr', 'cashflow'], status: 'Active',
-      cap: 9.2, coc: 14.1, dom: 41, discount: 10.1,
-      mapX: 70, mapY: 68, imgV: 0,
-      owner: 'Vacant / Bank Owned', ownerType: 'REO', equity: 100,
-      tagline: 'Value-add · bath conversion',
-      insights: [
-        { type: 'pos', text: 'Add 2nd bath → rent comp jumps to $1,950 (+$200/mo).' },
-        { type: 'warn', text: 'Insurance climbing 9% YoY in zip — model conservatively.' },
-        { type: 'pos', text: 'Springfield neighborhood gentrification trajectory accelerating.' }
-      ]
-    },
-    {
-      id: 10, lat: 35.7609, lng: -78.7228, addr: '6620 Willowbrook Ln', city: 'Raleigh', state: 'NC', zip: '27606',
-      price: 398000, comp: 421000, sqft: 2080, lot: 0.20, beds: 4, baths: 3, year: 2011, type: 'SFR',
-      rent: 2650, taxes: 3200, insurance: 1300, hoa: 180,
-      score: 80, grade: 'B', strategy: ['cashflow', 'undervalued'], status: 'Active',
-      cap: 6.4, coc: 9.0, dom: 16, discount: 5.5,
-      mapX: 66, mapY: 60, imgV: 1,
-      owner: 'Daniel & Rebecca Wu', ownerType: 'Individual', equity: 52,
-      tagline: 'Growth market',
-      insights: [
-        { type: 'pos', text: 'Research Triangle Park commute zone — durable rental demand.' },
-        { type: 'pos', text: '5.5% under comps; sellers relocating, motivated.' },
-        { type: 'warn', text: 'HOA $180/mo — modest drag.' }
-      ]
-    },
-    {
-      id: 11, lat: 39.9425, lng: -83.0102, addr: '15 Oakridge Dr', city: 'Columbus', state: 'OH', zip: '43223',
-      price: 154000, comp: 169000, sqft: 1140, lot: 0.13, beds: 2, baths: 1, year: 1955, type: 'SFR',
-      rent: 1450, taxes: 1800, insurance: 850, hoa: 0,
-      score: 72, grade: 'B', strategy: ['cashflow'], status: 'Active',
-      cap: 9.0, coc: 13.2, dom: 28, discount: 8.9,
-      mapX: 76, mapY: 28, imgV: 2,
-      owner: 'Heritage Rentals LLC', ownerType: 'LLC', equity: 60,
-      tagline: 'Starter rental',
-      insights: [
-        { type: 'pos', text: 'Columbus Intel campus 12mi — long-term appreciation tailwind.' },
-        { type: 'warn', text: 'Smaller floorplan limits tenant pool to singles/couples.' }
-      ]
-    },
-    {
-      id: 12, lat: 25.8525, lng: -80.1819, addr: '524 NE 64th St', city: 'Miami', state: 'FL', zip: '33138',
-      price: 612000, comp: 645000, sqft: 1840, lot: 0.14, beds: 3, baths: 2, year: 1956, type: 'SFR',
-      rent: 4200, taxes: 7200, insurance: 5800, hoa: 0,
-      score: 73, grade: 'B', strategy: ['cashflow', 'undervalued'], status: 'Active',
-      cap: 6.4, coc: 8.9, dom: 31, discount: 5.1,
-      mapX: 74, mapY: 82, imgV: 3,
-      owner: 'Costa Brava Investments', ownerType: 'LLC', equity: 33,
-      tagline: 'STR potential',
-      insights: [
-        { type: 'pos', text: 'STR zoning allowed — potential $7.5k/mo gross.' },
-        { type: 'neg', text: 'Insurance ($5.8k/yr) and rising — hurricane exposure.' },
-        { type: 'pos', text: 'Lot allows detached ADU per current zoning.' }
-      ]
-    }
-  ];
+<!-- STATS -->
+<div class="stats-bar">
+  <div class="stats-bar-inner">
+    <div class="stat-item"><span class="num">10k+</span><span class="lbl">Properties analyzed daily</span></div>
+    <div class="stat-item"><span class="num">94</span><span class="lbl">Max DealScore possible</span></div>
+    <div class="stat-item"><span class="num">6</span><span class="lbl">Score factors per property</span></div>
+    <div class="stat-item"><span class="num">$0</span><span class="lbl">To get started</span></div>
+  </div>
+</div>
 
-  // ===== SVG GENERATOR =====
-  function svgImage(variant, id, w = 220, h = 165) {
-    const palettes = [
-      { sky: '#a8c5e0', wall: '#c4a584', roof: '#7a3e2c', trim: '#3d3833', tree: '#5a6e3d', ground: '#94a37a' },
-      { sky: '#bcc8d0', wall: '#9eaab0', roof: '#3d4a5c', trim: '#1f2937', tree: '#4a5c3e', ground: '#7a8a78' },
-      { sky: '#b8c8d8', wall: '#d8c8a8', roof: '#5a3826', trim: '#2c2218', tree: '#6b7a4a', ground: '#a89878' },
-      { sky: '#a5b8c5', wall: '#b8a890', roof: '#2c3848', trim: '#0f1620', tree: '#3d5a4a', ground: '#8a9888' }
-    ];
-    const p = palettes[variant % 4];
-    const o = (id * 11) % 20;
-    return `
-      <svg viewBox="0 0 320 240" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid slice">
-        <rect width="320" height="240" fill="${p.sky}"/>
-        <ellipse cx="${40 + o}" cy="180" rx="60" ry="20" fill="${p.tree}" opacity="0.6"/>
-        <ellipse cx="${260 - o}" cy="184" rx="80" ry="22" fill="${p.tree}" opacity="0.7"/>
-
-        <!-- ground -->
-        <rect x="0" y="185" width="320" height="55" fill="${p.ground}"/>
-
-        <!-- driveway -->
-        <polygon points="${140 + o/2},185 ${180 + o/2},185 ${200 + o/2},240 ${120 + o/2},240" fill="#9a9a8a" opacity="0.6"/>
-
-        <!-- house -->
-        <rect x="${88 + o/2}" y="120" width="144" height="68" fill="${p.wall}"/>
-        <!-- shadow line -->
-        <rect x="${88 + o/2}" y="120" width="144" height="3" fill="#000" opacity="0.15"/>
-
-        <!-- roof -->
-        <polygon points="${88 + o/2},120 ${160 + o/2},75 ${232 + o/2},120" fill="${p.roof}"/>
-        <polygon points="${88 + o/2},120 ${160 + o/2},75 ${160 + o/2},78 ${88 + o/2},123" fill="#000" opacity="0.15"/>
-
-        <!-- chimney -->
-        <rect x="${195 + o/2}" y="83" width="11" height="22" fill="${p.roof}"/>
-
-        <!-- left window -->
-        <rect x="${110 + o/2}" y="135" width="22" height="26" fill="#cce4f0"/>
-        <rect x="${110 + o/2}" y="135" width="22" height="26" fill="none" stroke="${p.trim}" stroke-width="1.5"/>
-        <line x1="${121 + o/2}" y1="135" x2="${121 + o/2}" y2="161" stroke="${p.trim}" stroke-width="1"/>
-        <line x1="${110 + o/2}" y1="148" x2="${132 + o/2}" y2="148" stroke="${p.trim}" stroke-width="1"/>
-
-        <!-- right window -->
-        <rect x="${188 + o/2}" y="135" width="22" height="26" fill="#cce4f0"/>
-        <rect x="${188 + o/2}" y="135" width="22" height="26" fill="none" stroke="${p.trim}" stroke-width="1.5"/>
-        <line x1="${199 + o/2}" y1="135" x2="${199 + o/2}" y2="161" stroke="${p.trim}" stroke-width="1"/>
-        <line x1="${188 + o/2}" y1="148" x2="${210 + o/2}" y2="148" stroke="${p.trim}" stroke-width="1"/>
-
-        <!-- door -->
-        <rect x="${150 + o/2}" y="148" width="20" height="40" fill="${p.trim}"/>
-        <rect x="${150 + o/2}" y="148" width="20" height="40" fill="none" stroke="${p.roof}" stroke-width="1"/>
-        <circle cx="${165 + o/2}" cy="168" r="1.2" fill="#d4a04a"/>
-
-        <!-- bush -->
-        <ellipse cx="${130 + o/2}" cy="188" rx="10" ry="6" fill="${p.tree}" opacity="0.85"/>
-        <ellipse cx="${190 + o/2}" cy="188" rx="10" ry="6" fill="${p.tree}" opacity="0.85"/>
-
-        <!-- foreground tree -->
-        <rect x="42" y="160" width="5" height="28" fill="${p.trim}"/>
-        <circle cx="44" cy="158" r="16" fill="${p.tree}"/>
-      </svg>
-    `;
-  }
-
-  // ===== UTILITIES =====
-  const fmt$ = (n) => '$' + n.toLocaleString();
-  const fmt$k = (n) => n >= 1000 ? '$' + Math.round(n/1000) + 'k' : '$' + n;
-
-  // ===== STATE =====
-  let selectedId = null;
-  let sortBy = 'score';
-  let searchQuery = '';
-  const filters = { priceMin: 0, priceMax: 0, bedsMin: 0, bathsMin: 0, capMin: 0, strategies: [], scoreMin: 0, statuses: [] };
-  let activeDDBtn = null;
-
-  // ===== DROPDOWN ENGINE =====
-  function ddEl() { return document.getElementById('filterDropdown'); }
-
-  function openDD(btn, type) {
-    if (activeDDBtn === btn) { closeDD(); return; }
-    activeDDBtn = btn;
-    const rect = btn.getBoundingClientRect();
-    const el = ddEl();
-    el.innerHTML = ddHtml(type);
-    el.style.left = rect.left + 'px';
-    el.style.top = (rect.bottom + 6) + 'px';
-    el.style.display = 'block';
-    btn.classList.add('active');
-  }
-
-  function closeDD() {
-    ddEl().style.display = 'none';
-    if (activeDDBtn) { activeDDBtn.classList.remove('active'); activeDDBtn = null; }
-    updateFilterChip();
-  }
-
-  function updateFilterChip() {
-    const count = (filters.priceMin || filters.priceMax ? 1 : 0)
-      + (filters.bedsMin ? 1 : 0) + (filters.bathsMin ? 1 : 0)
-      + (filters.capMin ? 1 : 0) + (filters.strategies.length ? 1 : 0)
-      + (filters.scoreMin ? 1 : 0) + (filters.statuses.length ? 1 : 0);
-    const pill = document.querySelector('[data-filter-toggle] .count');
-    if (pill) pill.textContent = count;
-    const btn = document.querySelector('[data-filter-toggle]');
-    if (btn) btn.classList.toggle('active', count > 0);
-  }
-
-  function ddHtml(type) {
-    const sel = (arr, val) => arr.map(([v,l]) => `<option value="${v}" ${filters[val]===v||filters[val]===Number(v)?'selected':''}>${l}</option>`).join('');
-    const chk = (key, items, labels) => items.map(s => `<label class="dd-check"><input type="checkbox" value="${s}" ${filters[key].includes(s)?'checked':''} onchange="toggleF('${key}',this)">${labels[s]||s}</label>`).join('');
-    const footer = (clearKey, applyFn) => `<div class="dd-footer"><button class="dd-clear" onclick="clearF('${clearKey}')">Clear</button><button class="dd-apply" onclick="${applyFn}">Apply</button></div>`;
-
-    if (type === 'price') return `<h5>Price Range</h5><div class="dd-2col"><div><label>Min</label><input type="number" id="f-pmin" placeholder="No min" value="${filters.priceMin||''}" step="25000" min="0"></div><div><label>Max</label><input type="number" id="f-pmax" placeholder="No max" value="${filters.priceMax||''}" step="25000" min="0"></div></div>${footer('price',"applyF('price')")}`;
-
-    if (type === 'beds') return `<h5>Beds / Baths</h5><div class="dd-2col"><div><label>Min Beds</label><select id="f-beds">${sel([[0,'Any'],[1,'1+'],[2,'2+'],[3,'3+'],[4,'4+']],'bedsMin')}</select></div><div><label>Min Baths</label><select id="f-baths">${sel([[0,'Any'],[1,'1+'],[2,'2+'],[3,'3+']],'bathsMin')}</select></div></div>${footer('beds',"applyF('beds')")}`;
-
-    if (type === 'cap') return `<h5>Min Cap Rate</h5><select id="f-cap" style="width:100%;height:30px;padding:0 8px;border:1px solid var(--border);border-radius:5px;font-size:13px;color:var(--ink);outline:none;font-family:inherit;">${sel([[0,'Any'],[4,'4%+'],[5,'5%+'],[6,'6%+'],[7,'7%+'],[8,'8%+'],[9,'9%+'],[10,'10%+'],[12,'12%+']],'capMin')}</select>${footer('cap',"applyF('cap')")}`;
-
-    if (type === 'strategy') return `<h5>Strategy</h5>${chk('strategies',['cashflow','brrrr','flip','undervalued'],{cashflow:'Cash Flow',brrrr:'BRRRR',flip:'Fix & Flip',undervalued:'Undervalued'})}${footer('strategy',"closeDD();renderList()")}`;
-
-    if (type === 'score') return `<h5>Min DealScore</h5><select id="f-score" style="width:100%;height:30px;padding:0 8px;border:1px solid var(--border);border-radius:5px;font-size:13px;color:var(--ink);outline:none;font-family:inherit;">${sel([[0,'Any'],[60,'60+'],[65,'65+'],[70,'70+'],[75,'75+'],[80,'80+'],[85,'85+'],[90,'90+']],'scoreMin')}</select>${footer('score',"applyF('score')")}`;
-
-    if (type === 'status') return `<h5>Status</h5>${chk('statuses',['Active','Price Cut'],{})}${footer('status',"closeDD();renderList()")}`;
-
-    if (type === 'more') return `<h5>More Filters</h5><div class="dd-2col"><div><label>Min Year Built</label><input type="number" id="f-ymin" placeholder="Any" value="${filters.yearMin||''}" step="5" min="1900" max="2025"></div><div><label>Max DOM</label><input type="number" id="f-dom" placeholder="Any" value="${filters.domMax||''}" step="10" min="0"></div></div>${footer('more',"applyF('more')")}`;
-
-    return '';
-  }
-
-  function applyF(type) {
-    if (type === 'price') {
-      filters.priceMin = parseInt(document.getElementById('f-pmin').value) || 0;
-      filters.priceMax = parseInt(document.getElementById('f-pmax').value) || 0;
-    } else if (type === 'beds') {
-      filters.bedsMin = parseInt(document.getElementById('f-beds').value) || 0;
-      filters.bathsMin = parseInt(document.getElementById('f-baths').value) || 0;
-    } else if (type === 'cap') {
-      filters.capMin = parseFloat(document.getElementById('f-cap').value) || 0;
-    } else if (type === 'score') {
-      filters.scoreMin = parseInt(document.getElementById('f-score').value) || 0;
-    } else if (type === 'more') {
-      filters.yearMin = parseInt(document.getElementById('f-ymin').value) || 0;
-      filters.domMax = parseInt(document.getElementById('f-dom').value) || 0;
-    }
-    closeDD();
-    renderList();
-  }
-
-  function clearF(type) {
-    if (type === 'price') { filters.priceMin = 0; filters.priceMax = 0; }
-    else if (type === 'beds') { filters.bedsMin = 0; filters.bathsMin = 0; }
-    else if (type === 'cap') { filters.capMin = 0; }
-    else if (type === 'strategy') { filters.strategies = []; }
-    else if (type === 'score') { filters.scoreMin = 0; }
-    else if (type === 'status') { filters.statuses = []; }
-    else if (type === 'more') { filters.yearMin = 0; filters.domMax = 0; }
-    else if (type === 'all') {
-      Object.assign(filters, { priceMin:0, priceMax:0, bedsMin:0, bathsMin:0, capMin:0, strategies:[], scoreMin:0, statuses:[], yearMin:0, domMax:0 });
-    }
-    closeDD();
-    renderList();
-  }
-
-  function toggleF(key, cb) {
-    if (cb.checked) { if (!filters[key].includes(cb.value)) filters[key].push(cb.value); }
-    else { filters[key] = filters[key].filter(s => s !== cb.value); }
-    renderList();
-  }
-
-  // ===== CSV EXPORT =====
-  function exportCSV() {
-    const headers = ['Address','City','State','ZIP','Price','Beds','Baths','Sqft','Year','Type','Rent/mo','Cap Rate','CoC%','DealScore','Grade','Status','DOM','Discount%','Owner','Owner Type','Equity%'];
-    const rows = properties.map(p => [p.addr,p.city,p.state,p.zip,p.price,p.beds,p.baths,p.sqft,p.year,p.type,p.rent,p.cap,p.coc,p.score,p.grade,p.status,p.dom,p.discount,p.owner,p.ownerType,p.equity]);
-    const csv = [headers,...rows].map(r => r.map(v => `"${String(v).replace(/"/g,'""')}"`).join(',')).join('\n');
-    const a = Object.assign(document.createElement('a'), { href: URL.createObjectURL(new Blob([csv],{type:'text/csv'})), download: 'dealscope-export.csv' });
-    a.click();
-  }
-
-  // ===== RENDER LIST =====
-  function renderList() {
-    let sorted = [...properties];
-    if (searchQuery) {
-      sorted = sorted.filter(p => `${p.addr} ${p.city} ${p.state} ${p.zip}`.toLowerCase().includes(searchQuery));
-    }
-    sorted = sorted.filter(p => {
-      if (filters.priceMin && p.price < filters.priceMin) return false;
-      if (filters.priceMax && p.price > filters.priceMax) return false;
-      if (filters.bedsMin && p.beds < filters.bedsMin) return false;
-      if (filters.bathsMin && p.baths < filters.bathsMin) return false;
-      if (filters.capMin && p.cap < filters.capMin) return false;
-      if (filters.strategies.length && !p.strategy.some(s => filters.strategies.includes(s))) return false;
-      if (filters.scoreMin && p.score < filters.scoreMin) return false;
-      if (filters.statuses.length && !filters.statuses.includes(p.status)) return false;
-      if (filters.yearMin && p.year < filters.yearMin) return false;
-      if (filters.domMax && p.dom > filters.domMax) return false;
-      return true;
-    });
-    sorted.sort((a, b) => {
-      switch (sortBy) {
-        case 'price-asc': return a.price - b.price;
-        case 'price-desc': return b.price - a.price;
-        case 'cap': return b.cap - a.cap;
-        case 'discount': return b.discount - a.discount;
-        case 'dom': return b.dom - a.dom;
-        default: return b.score - a.score;
-      }
-    });
-
-    document.getElementById('resultCount').textContent = sorted.length;
-    updateFilterChip();
-
-    document.getElementById('resultsList').innerHTML = sorted.map(p => `
-      <div class="row ${selectedId === p.id ? 'selected' : ''}" data-id="${p.id}">
-        <div class="row-thumb">
-          ${svgImage(p.imgV, p.id)}
-          <div class="photo-count">+24</div>
-        </div>
-        <div class="row-body">
-          <div class="row-top">
-            <div class="row-price">${fmt$(p.price)}</div>
-            <div class="row-score">
-              <span class="score-pill ${p.grade}">${p.grade} · ${p.score}</span>
-            </div>
-          </div>
-          <div class="row-addr">${p.addr}, ${p.city}, ${p.state} ${p.zip}</div>
-          <div class="row-specs">
-            <strong>${p.beds}</strong> bd<span class="dot">·</span><strong>${p.baths}</strong> ba<span class="dot">·</span><strong>${p.sqft.toLocaleString()}</strong> sqft<span class="dot">·</span>Built <strong>${p.year}</strong><span class="dot">·</span>${p.type}
-          </div>
-          <div class="row-metrics">
-            <span class="pill pos"><span class="label">−</span>${p.discount}% comp</span>
-            <span class="pill ${p.cap >= 8 ? 'pos' : p.cap >= 6 ? '' : 'warn'}"><span class="label">Cap</span>${p.cap}%</span>
-            <span class="pill ${p.coc >= 10 ? 'pos' : ''}"><span class="label">CoC</span>${p.coc}%</span>
-            <span class="pill"><span class="label">Rent</span>${fmt$k(p.rent)}</span>
-            <span class="pill"><span class="label">DOM</span>${p.dom}</span>
-            ${p.status === 'Price Cut' ? '<span class="pill warn">Price Cut</span>' : ''}
-          </div>
-        </div>
+<!-- PROBLEM -->
+<section class="problem" id="features">
+  <div class="section-inner">
+    <div class="section-tag">The Problem</div>
+    <div class="section-title">The old way of finding deals is broken.</div>
+    <div class="section-sub">Waiting on a realtor means you're always last. By the time a deal hits your inbox, 10 other investors already saw it.</div>
+    <div class="problem-grid">
+      <div class="problem-card bad">
+        <div class="problem-card-label">✕ &nbsp;Without DealScope</div>
+        <div class="problem-item"><span class="icon">😴</span>Wait for your realtor to send you deals</div>
+        <div class="problem-item"><span class="icon">📊</span>Manually calculate cap rate, CoC, and cash flow in a spreadsheet</div>
+        <div class="problem-item"><span class="icon">🔍</span>Spend hours researching comps and owner info</div>
+        <div class="problem-item"><span class="icon">⏰</span>Miss deals because you saw them too late</div>
+        <div class="problem-item"><span class="icon">🤷</span>No way to compare 50 deals at once</div>
       </div>
-    `).join('');
-
-    document.querySelectorAll('.row').forEach(r => {
-      r.addEventListener('click', () => {
-        selectedId = parseInt(r.dataset.id);
-        renderList();
-        renderMap();
-        openDrawer();
-      });
-    });
-  }
-
-  // ===== MAP =====
-  let map = null;
-  const leafletMarkers = {};
-  const gradeColors = { A: '#16a34a', B: '#2563eb', C: '#d97706', D: '#6b7280' };
-
-  function initMap() {
-    map = L.map('map', { zoomControl: false, attributionControl: true }).setView([37.8, -96], 4);
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-    }).addTo(map);
-  }
-
-  function makeIcon(p) {
-    const sel = selectedId === p.id;
-    const c = gradeColors[p.grade] || '#1e5fd9';
-    return L.divIcon({
-      className: '',
-      iconSize: [70, 36],
-      iconAnchor: [35, 36],
-      html: `<div style="background:${sel?c:'#fff'};color:${sel?'#fff':c};border:2px solid ${c};border-radius:14px;padding:4px 10px;font-size:12px;font-weight:700;white-space:nowrap;box-shadow:0 2px 8px rgba(0,0,0,0.18);font-family:Inter,-apple-system,sans-serif;position:relative;">${fmt$k(p.price)}<div style="position:absolute;bottom:-7px;left:50%;transform:translateX(-50%) rotate(45deg);width:10px;height:10px;background:${sel?c:'#fff'};border-right:2px solid ${c};border-bottom:2px solid ${c};"></div></div>`
-    });
-  }
-
-  function renderMap() {
-    if (!map) return;
-    properties.forEach(p => {
-      if (leafletMarkers[p.id]) {
-        leafletMarkers[p.id].setIcon(makeIcon(p));
-      } else {
-        const m = L.marker([p.lat, p.lng], { icon: makeIcon(p) }).addTo(map);
-        m.on('click', () => {
-          selectedId = p.id;
-          renderList();
-          renderMap();
-          openDrawer();
-          const row = document.querySelector(`.row[data-id="${p.id}"]`);
-          if (row) row.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        });
-        leafletMarkers[p.id] = m;
-      }
-    });
-  }
-
-  function fitAll() {
-    if (!map) return;
-    const bounds = properties.map(p => [p.lat, p.lng]);
-    map.fitBounds(bounds, { padding: [40, 40] });
-  }
-
-  // ===== DRAWER =====
-  function openDrawer() {
-    const p = properties.find(x => x.id === selectedId);
-    if (!p) return;
-
-    const monthlyPI = Math.round(p.price * 0.8 * 0.0072);
-    const monthlyExp = Math.round((p.taxes + p.insurance) / 12 + p.hoa);
-    const monthlyCF = p.rent - monthlyPI - monthlyExp;
-    const annualCF = monthlyCF * 12;
-    const downPayment = p.price * 0.2;
-    const closingCosts = Math.round(p.price * 0.03);
-    const initialCash = downPayment + closingCosts;
-
-    const components = [
-      { label: 'Undervaluation', val: Math.min(100, Math.round(p.discount * 7 + 25)) },
-      { label: 'Cash flow', val: Math.min(100, Math.round(p.cap * 9 + 12)) },
-      { label: 'Cash-on-cash', val: Math.min(100, Math.round(p.coc * 5.5 + 20)) },
-      { label: 'Value-add upside', val: 60 + ((p.id * 7) % 35) },
-      { label: 'Market momentum', val: 55 + ((p.id * 11) % 40) },
-      { label: 'Condition/risk', val: 50 + ((p.id * 13) % 45) }
-    ];
-
-    const comps = [
-      { addr: `${p.addr.split(' ')[0] - 12 || 1100} ${p.addr.split(' ').slice(1).join(' ')}`, price: Math.round(p.comp * 0.98), sqft: p.sqft - 80, days: 14, sold: true },
-      { addr: `${(parseInt(p.addr) || 1000) + 47} ${p.addr.split(' ').slice(1).join(' ')}`, price: Math.round(p.comp * 1.04), sqft: p.sqft + 120, days: 22, sold: true },
-      { addr: `${(parseInt(p.addr) || 1000) - 22} ${p.addr.split(' ').slice(1).join(' ')}`, price: Math.round(p.comp * 0.99), sqft: p.sqft - 40, days: 18, sold: true },
-      { addr: `${(parseInt(p.addr) || 1000) + 88} ${p.addr.split(' ').slice(1).join(' ')}`, price: Math.round(p.comp * 1.01), sqft: p.sqft + 60, days: 31, sold: true }
-    ];
-
-    document.getElementById('drawerContent').innerHTML = `
-      <div class="drawer-hero">
-        ${svgImage(p.imgV, p.id, 560, 350)}
-        <div class="hero-badge">${p.status} · ${p.dom} DOM</div>
+      <div class="problem-card good">
+        <div class="problem-card-label">✓ &nbsp;With DealScope</div>
+        <div class="problem-item"><span class="icon">🎯</span>Search any market yourself, on your schedule</div>
+        <div class="problem-item"><span class="icon">⚡</span>Every metric calculated instantly — cap rate, CoC, cash flow, comps</div>
+        <div class="problem-item"><span class="icon">🏆</span>DealScore ranks every property so the best deals rise to the top</div>
+        <div class="problem-item"><span class="icon">🗺️</span>See all deals on a live map with price pins</div>
+        <div class="problem-item"><span class="icon">📩</span>Export leads and owner data instantly</div>
       </div>
+    </div>
+  </div>
+</section>
 
-      <div class="drawer-body">
-        <div class="drawer-price">
-          <span class="num">${fmt$(p.price)}</span>
-          <span class="badge">−${p.discount}% below comp</span>
-        </div>
-        <div class="drawer-addr">${p.addr}, ${p.city}, ${p.state} ${p.zip}</div>
-
-        <div class="drawer-specs">
-          <div><span class="label">Beds</span><strong>${p.beds}</strong></div>
-          <div><span class="label">Baths</span><strong>${p.baths}</strong></div>
-          <div><span class="label">Sqft</span><strong>${p.sqft.toLocaleString()}</strong></div>
-          <div><span class="label">Lot</span><strong>${p.lot} ac</strong></div>
-          <div><span class="label">Year</span><strong>${p.year}</strong></div>
-          <div><span class="label">Type</span><strong>${p.type}</strong></div>
-        </div>
-
-        <div class="score-block">
-          <div class="label">DealScore™</div>
-          <div class="num">${p.score}<span class="out"> / 100</span></div>
-          <div class="desc">Grade ${p.grade} · ${p.tagline}</div>
-        </div>
-
-        <div class="section">
-          <h4>Score Components</h4>
-          <div class="components">
-            ${components.map(c => `
-              <div class="comp-row">
-                <div class="comp-label">${c.label}</div>
-                <div class="comp-bar"><div class="comp-fill ${c.val >= 75 ? 'high' : c.val >= 50 ? '' : 'low'}" style="width: ${c.val}%"></div></div>
-                <div class="comp-num">${c.val}</div>
-              </div>
-            `).join('')}
-          </div>
-        </div>
-
-        <div class="section">
-          <h4>Investment Analysis</h4>
-          <div class="data-table">
-            <div class="data-row"><span class="k">Purchase price</span><span class="v">${fmt$(p.price)}</span></div>
-            <div class="data-row"><span class="k">Down payment (20%)</span><span class="v">${fmt$(downPayment)}</span></div>
-            <div class="data-row"><span class="k">Closing costs (est. 3%)</span><span class="v">${fmt$(closingCosts)}</span></div>
-            <div class="data-row"><span class="k">Initial cash required</span><span class="v">${fmt$(initialCash)}</span></div>
-            <div class="data-row"><span class="k">Est. monthly rent</span><span class="v">${fmt$(p.rent)}</span></div>
-            <div class="data-row"><span class="k">P&I (30yr @ 7%)</span><span class="v">−${fmt$(monthlyPI)}</span></div>
-            <div class="data-row"><span class="k">Property tax (monthly)</span><span class="v">−${fmt$(Math.round(p.taxes/12))}</span></div>
-            <div class="data-row"><span class="k">Insurance (monthly)</span><span class="v">−${fmt$(Math.round(p.insurance/12))}</span></div>
-            ${p.hoa > 0 ? `<div class="data-row"><span class="k">HOA</span><span class="v">−${fmt$(p.hoa)}</span></div>` : ''}
-            <div class="data-row"><span class="k"><strong>Net monthly cash flow</strong></span><span class="v ${monthlyCF > 0 ? 'pos' : 'neg'}">${monthlyCF > 0 ? '+' : ''}${fmt$(monthlyCF)}</span></div>
-            <div class="data-row"><span class="k">Annual cash flow</span><span class="v ${annualCF > 0 ? 'pos' : 'neg'}">${annualCF > 0 ? '+' : ''}${fmt$(annualCF)}</span></div>
-            <div class="data-row"><span class="k">Cap rate</span><span class="v">${p.cap}%</span></div>
-            <div class="data-row"><span class="k">Cash-on-cash return</span><span class="v ${p.coc >= 10 ? 'pos' : ''}">${p.coc}%</span></div>
-          </div>
-        </div>
-
-        <div class="section">
-          <h4>AI Insights</h4>
-          ${p.insights.map(ins => `
-            <div class="insight ${ins.type}">
-              <span class="insight-icon">${ins.type === 'pos' ? '↑' : ins.type === 'warn' ? '!' : '↓'}</span>
-              <span>${ins.text}</span>
-            </div>
-          `).join('')}
-        </div>
-
-        <div class="section">
-          <h4>Owner & Property Records</h4>
-          <div class="data-table">
-            <div class="data-row"><span class="k">Owner</span><span class="v">${p.owner}</span></div>
-            <div class="data-row"><span class="k">Owner type</span><span class="v">${p.ownerType}</span></div>
-            <div class="data-row"><span class="k">Est. equity</span><span class="v">${p.equity}%</span></div>
-            <div class="data-row"><span class="k">Tax assessment</span><span class="v">${fmt$(Math.round(p.price * 0.85))}</span></div>
-            <div class="data-row"><span class="k">Last sale (est)</span><span class="v">${fmt$(Math.round(p.price * 0.62))}</span></div>
-          </div>
-        </div>
-
-        <div class="section">
-          <h4>Recent Comparables</h4>
-          <table class="comps-table">
-            <thead><tr><th>Address</th><th style="text-align: right;">Sold</th><th style="text-align: right;">Sqft</th><th style="text-align: right;">DOM</th></tr></thead>
-            <tbody>
-              ${comps.map(c => `
-                <tr>
-                  <td>${c.addr}</td>
-                  <td class="num">${fmt$(c.price)}</td>
-                  <td class="num">${c.sqft.toLocaleString()}</td>
-                  <td class="num">${c.days}d</td>
-                </tr>
-              `).join('')}
-            </tbody>
-          </table>
-        </div>
+<!-- FEATURES -->
+<section>
+  <div class="section-inner">
+    <div class="section-tag">Features</div>
+    <div class="section-title">Everything you need to find the deal.</div>
+    <div class="section-sub">Built for investors who do their own research and move fast.</div>
+    <div class="features-grid">
+      <div class="feature-card">
+        <div class="feature-icon">🏆</div>
+        <h3>DealScore™</h3>
+        <p>Every property gets a score from 0–100 based on undervaluation, cap rate, cash-on-cash return, market momentum, and value-add upside.</p>
       </div>
-    `;
-    document.getElementById('drawer').classList.add('open');
-  }
+      <div class="feature-card">
+        <div class="feature-icon">🗺️</div>
+        <h3>Live Deal Map</h3>
+        <p>See every deal plotted on a real interactive map. Price pins colored by grade — green for A deals, blue for B, orange for C.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">📊</div>
+        <h3>Full Investment Analysis</h3>
+        <p>Cap rate, cash-on-cash return, net monthly cash flow, down payment required, closing costs — all calculated automatically.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">🔍</div>
+        <h3>Smart Filters</h3>
+        <p>Filter by price range, beds/baths, cap rate, strategy (BRRRR, flip, cash flow), DealScore, and more. Find your deal in seconds.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">👤</div>
+        <h3>Owner Data</h3>
+        <p>See owner name, type, estimated equity, and tax records on every property. Know who to contact before anyone else does.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">📥</div>
+        <h3>Export & Save</h3>
+        <p>Export any search to CSV in one click. Save searches and get notified when new deals match your criteria.</p>
+      </div>
+    </div>
+  </div>
+</section>
 
-  function closeDrawer() {
-    document.getElementById('drawer').classList.remove('open');
-    selectedId = null;
-    renderList();
-    renderMap();
-  }
+<!-- HOW IT WORKS -->
+<section class="how" id="how">
+  <div class="section-inner">
+    <div class="section-tag">How it works</div>
+    <div class="section-title">From search to offer in minutes.</div>
+    <div class="steps">
+      <div class="step">
+        <div class="step-num">1</div>
+        <h3>Search any market</h3>
+        <p>Type a city, ZIP code, or county. DealScope pulls all active listings and runs them through the algorithm instantly.</p>
+      </div>
+      <div class="step">
+        <div class="step-num">2</div>
+        <h3>DealScore ranks the deals</h3>
+        <p>Every property gets scored 0–100. Sort by DealScore and the best deals float to the top automatically.</p>
+      </div>
+      <div class="step">
+        <div class="step-num">3</div>
+        <h3>Analyze, save, and act</h3>
+        <p>Open any property for a full investment breakdown, owner data, and AI insights. Export to CSV or save to a list.</p>
+      </div>
+    </div>
+  </div>
+</section>
 
-  // ===== EVENTS =====
-  document.getElementById('search').addEventListener('input', (e) => {
-    searchQuery = e.target.value.toLowerCase().trim();
-    renderList();
-  });
+<!-- PRICING -->
+<section id="pricing">
+  <div class="section-inner">
+    <div class="section-tag">Pricing</div>
+    <div class="section-title">Start free. Scale when you're ready.</div>
+    <div class="section-sub">No credit card required to get started.</div>
+    <div class="pricing-grid">
+      <div class="pricing-card">
+        <div class="pricing-name">Starter</div>
+        <div class="pricing-price">$0<span>/mo</span></div>
+        <div class="pricing-desc">For investors just getting started.</div>
+        <button class="pricing-cta outline" onclick="window.location='app.html'">Get started free</button>
+        <div class="pricing-feature"><span class="chk">✓</span>25 property searches / month</div>
+        <div class="pricing-feature"><span class="chk">✓</span>DealScore on every property</div>
+        <div class="pricing-feature"><span class="chk">✓</span>Basic investment metrics</div>
+        <div class="pricing-feature"><span class="chk">✓</span>Live deal map</div>
+        <div class="pricing-feature"><span class="x">—</span><span style="color:var(--ink-4)">CSV export</span></div>
+        <div class="pricing-feature"><span class="x">—</span><span style="color:var(--ink-4)">Owner & equity data</span></div>
+        <div class="pricing-feature"><span class="x">—</span><span style="color:var(--ink-4)">Saved searches & alerts</span></div>
+      </div>
+      <div class="pricing-card featured">
+        <div class="pricing-badge">Most popular</div>
+        <div class="pricing-name">Pro</div>
+        <div class="pricing-price">$49<span>/mo</span></div>
+        <div class="pricing-desc">For serious investors who move fast.</div>
+        <button class="pricing-cta filled" onclick="window.location='app.html'">Start 7-day free trial</button>
+        <div class="pricing-feature"><span class="chk">✓</span>Unlimited searches</div>
+        <div class="pricing-feature"><span class="chk">✓</span>Full DealScore breakdown</div>
+        <div class="pricing-feature"><span class="chk">✓</span>Complete investment analysis</div>
+        <div class="pricing-feature"><span class="chk">✓</span>Live deal map</div>
+        <div class="pricing-feature"><span class="chk">✓</span>CSV export</div>
+        <div class="pricing-feature"><span class="chk">✓</span>Owner & equity data</div>
+        <div class="pricing-feature"><span class="chk">✓</span>Saved searches & email alerts</div>
+      </div>
+      <div class="pricing-card">
+        <div class="pricing-name">Team</div>
+        <div class="pricing-price">$99<span>/mo</span></div>
+        <div class="pricing-desc">For investing teams and wholesalers.</div>
+        <button class="pricing-cta outline" onclick="window.location='app.html'">Start 7-day free trial</button>
+        <div class="pricing-feature"><span class="chk">✓</span>Everything in Pro</div>
+        <div class="pricing-feature"><span class="chk">✓</span>Up to 5 team members</div>
+        <div class="pricing-feature"><span class="chk">✓</span>Skip trace integration</div>
+        <div class="pricing-feature"><span class="chk">✓</span>Shared deal lists</div>
+        <div class="pricing-feature"><span class="chk">✓</span>Priority support</div>
+        <div class="pricing-feature"><span class="chk">✓</span>API access (coming soon)</div>
+        <div class="pricing-feature"><span class="chk">✓</span>Custom DealScore weights</div>
+      </div>
+    </div>
+  </div>
+</section>
 
-  document.getElementById('sortBy').addEventListener('change', (e) => {
-    sortBy = e.target.value;
-    renderList();
-  });
+<!-- FINAL CTA -->
+<div class="final-cta">
+  <h2>Start finding deals today.</h2>
+  <p>Free to start. No realtor needed. No spreadsheets.</p>
+  <a href="app.html"><button class="btn-hero primary" style="font-size:17px;padding:16px 36px;">Get started free →</button></a>
+</div>
 
-  document.addEventListener('click', (e) => {
-    const el = ddEl();
-    if (el.style.display !== 'none' && !el.contains(e.target) && e.target !== activeDDBtn && !e.target.closest('[onclick*="openDD"]')) {
-      closeDD();
-    }
-  });
+<!-- FOOTER -->
+<footer>
+  <div class="brand"><div class="brand-mark">D</div>DealScope</div>
+  <div class="links">
+    <a href="#features">Features</a>
+    <a href="#how">How it works</a>
+    <a href="#pricing">Pricing</a>
+    <a href="app.html">Sign in</a>
+  </div>
+  <div class="copy">© 2026 DealScope. All rights reserved.</div>
+</footer>
 
-  // ===== INIT =====
-  initMap();
-  renderList();
-  renderMap();
-</script>
-
-<div id="filterDropdown" class="dropdown" style="display:none;position:fixed;"></div>
 </body>
 </html>
