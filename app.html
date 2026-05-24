@@ -298,7 +298,7 @@
     border: 1px solid var(--border);
     position: relative;
   }
-  .row-thumb svg { width: 100%; height: 100%; display: block; }
+  .row-thumb svg, .row-thumb img { width: 100%; height: 100%; display: block; object-fit: cover; }
   .row-thumb .photo-count {
     position: absolute;
     bottom: 4px;
@@ -582,7 +582,7 @@
     position: relative;
     overflow: hidden;
   }
-  .drawer-hero svg { width: 100%; height: 100%; display: block; }
+  .drawer-hero svg, .drawer-hero img { width: 100%; height: 100%; display: block; object-fit: cover; }
   .hero-badge {
     position: absolute;
     top: 12px;
@@ -1622,69 +1622,26 @@
     }
   ];
 
-  // ===== SVG GENERATOR =====
-  function svgImage(variant, id, w = 220, h = 165) {
-    const palettes = [
-      { sky: '#a8c5e0', wall: '#c4a584', roof: '#7a3e2c', trim: '#3d3833', tree: '#5a6e3d', ground: '#94a37a' },
-      { sky: '#bcc8d0', wall: '#9eaab0', roof: '#3d4a5c', trim: '#1f2937', tree: '#4a5c3e', ground: '#7a8a78' },
-      { sky: '#b8c8d8', wall: '#d8c8a8', roof: '#5a3826', trim: '#2c2218', tree: '#6b7a4a', ground: '#a89878' },
-      { sky: '#a5b8c5', wall: '#b8a890', roof: '#2c3848', trim: '#0f1620', tree: '#3d5a4a', ground: '#8a9888' }
+  // ===== PHOTO =====
+  function propImage(variant, id, w = 400, h = 300) {
+    const photos = [
+      '1568605114967-8130f3a36994',
+      '1560448204-e02f11c3d0e2',
+      '1558618666-fcd25c85cd64',
+      '1570129477492-45c003edd2be',
+      '1600596542815-ffad4c1539a9',
+      '1600585154340-be6161a56a0c',
+      '1580587771525-78b9dba3b914',
+      '1512917774080-9991f1c4c750',
+      '1564013799919-ab600027ffc6',
+      '1582268611958-ebfd161ef9cf',
     ];
-    const p = palettes[variant % 4];
-    const o = (id * 11) % 20;
-    return `
-      <svg viewBox="0 0 320 240" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid slice">
-        <rect width="320" height="240" fill="${p.sky}"/>
-        <ellipse cx="${40 + o}" cy="180" rx="60" ry="20" fill="${p.tree}" opacity="0.6"/>
-        <ellipse cx="${260 - o}" cy="184" rx="80" ry="22" fill="${p.tree}" opacity="0.7"/>
-
-        <!-- ground -->
-        <rect x="0" y="185" width="320" height="55" fill="${p.ground}"/>
-
-        <!-- driveway -->
-        <polygon points="${140 + o/2},185 ${180 + o/2},185 ${200 + o/2},240 ${120 + o/2},240" fill="#9a9a8a" opacity="0.6"/>
-
-        <!-- house -->
-        <rect x="${88 + o/2}" y="120" width="144" height="68" fill="${p.wall}"/>
-        <!-- shadow line -->
-        <rect x="${88 + o/2}" y="120" width="144" height="3" fill="#000" opacity="0.15"/>
-
-        <!-- roof -->
-        <polygon points="${88 + o/2},120 ${160 + o/2},75 ${232 + o/2},120" fill="${p.roof}"/>
-        <polygon points="${88 + o/2},120 ${160 + o/2},75 ${160 + o/2},78 ${88 + o/2},123" fill="#000" opacity="0.15"/>
-
-        <!-- chimney -->
-        <rect x="${195 + o/2}" y="83" width="11" height="22" fill="${p.roof}"/>
-
-        <!-- left window -->
-        <rect x="${110 + o/2}" y="135" width="22" height="26" fill="#cce4f0"/>
-        <rect x="${110 + o/2}" y="135" width="22" height="26" fill="none" stroke="${p.trim}" stroke-width="1.5"/>
-        <line x1="${121 + o/2}" y1="135" x2="${121 + o/2}" y2="161" stroke="${p.trim}" stroke-width="1"/>
-        <line x1="${110 + o/2}" y1="148" x2="${132 + o/2}" y2="148" stroke="${p.trim}" stroke-width="1"/>
-
-        <!-- right window -->
-        <rect x="${188 + o/2}" y="135" width="22" height="26" fill="#cce4f0"/>
-        <rect x="${188 + o/2}" y="135" width="22" height="26" fill="none" stroke="${p.trim}" stroke-width="1.5"/>
-        <line x1="${199 + o/2}" y1="135" x2="${199 + o/2}" y2="161" stroke="${p.trim}" stroke-width="1"/>
-        <line x1="${188 + o/2}" y1="148" x2="${210 + o/2}" y2="148" stroke="${p.trim}" stroke-width="1"/>
-
-        <!-- door -->
-        <rect x="${150 + o/2}" y="148" width="20" height="40" fill="${p.trim}"/>
-        <rect x="${150 + o/2}" y="148" width="20" height="40" fill="none" stroke="${p.roof}" stroke-width="1"/>
-        <circle cx="${165 + o/2}" cy="168" r="1.2" fill="#d4a04a"/>
-
-        <!-- bush -->
-        <ellipse cx="${130 + o/2}" cy="188" rx="10" ry="6" fill="${p.tree}" opacity="0.85"/>
-        <ellipse cx="${190 + o/2}" cy="188" rx="10" ry="6" fill="${p.tree}" opacity="0.85"/>
-
-        <!-- foreground tree -->
-        <rect x="42" y="160" width="5" height="28" fill="${p.trim}"/>
-        <circle cx="44" cy="158" r="16" fill="${p.tree}"/>
-      </svg>
-    `;
+    const idx = (variant * 3 + id) % photos.length;
+    const url = `https://images.unsplash.com/photo-${photos[idx]}?auto=format&fit=crop&w=${w}&h=${h}&q=80`;
+    return `<img src="${url}" alt="Property photo" loading="lazy" style="width:100%;height:100%;object-fit:cover;display:block;" onerror="this.parentElement.style.background='var(--surface-2)'"/>`;
   }
 
-  // ===== UTILITIES =====
+    // ===== UTILITIES =====
   const fmt$ = (n) => '$' + n.toLocaleString();
   const fmt$k = (n) => n >= 1000 ? '$' + Math.round(n/1000) + 'k' : '$' + n;
 
@@ -1847,7 +1804,7 @@
     document.getElementById('resultsList').innerHTML = sorted.map(p => `
       <div class="row ${selectedId === p.id ? 'selected' : ''}" data-id="${p.id}">
         <div class="row-thumb">
-          ${svgImage(p.imgV, p.id)}
+          ${propImage(p.imgV, p.id)}
           <div class="photo-count">+24</div>
         </div>
         <div class="row-body">
@@ -2068,7 +2025,7 @@
 
     document.getElementById('drawerContent').innerHTML = `
       <div class="drawer-hero">
-        ${svgImage(p.imgV, p.id, 560, 350)}
+        ${propImage(p.imgV, p.id, 800, 500)}
         <div class="hero-badge">${p.status} · ${p.dom} DOM</div>
       </div>
 
@@ -2291,7 +2248,7 @@
       <div></div>
       ${props.map(p => `
         <div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;overflow:hidden;">
-          <div style="aspect-ratio:16/9;">${svgImage(p.imgV, p.id)}</div>
+          <div style="aspect-ratio:16/9;">${propImage(p.imgV, p.id)}</div>
           <div style="padding:12px;">
             <div style="font-size:16px;font-weight:700;">${fmt$(p.price)}</div>
             <div style="font-size:12px;color:var(--ink-3);margin:3px 0 8px;">${p.addr}, ${p.city}</div>
