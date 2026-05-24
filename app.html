@@ -872,6 +872,31 @@
     border-radius: 6px; font-size: 11px; font-weight: 600; line-height: 1.4;
   }
   [data-mode="guided"] .verdict { display: block; }
+  [data-mode="guided"] .guided-hide { display: none !important; }
+
+  /* Goal modal */
+  .goal-modal-overlay {
+    position: fixed; inset: 0; background: rgba(0,0,0,0.65);
+    z-index: 201; display: none; align-items: center; justify-content: center;
+    backdrop-filter: blur(4px);
+  }
+  .goal-modal {
+    background: var(--surface); border-radius: 20px; padding: 40px 36px;
+    max-width: 580px; width: 92%; text-align: center;
+    box-shadow: 0 24px 60px rgba(0,0,0,0.25);
+  }
+  .goal-modal h2 { font-size: 24px; font-weight: 800; margin-bottom: 8px; letter-spacing: -0.02em; }
+  .goal-modal > p { font-size: 14px; color: var(--ink-3); margin-bottom: 28px; line-height: 1.6; }
+  .goal-cards { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
+  .goal-card {
+    border: 2px solid var(--border); border-radius: 14px; padding: 22px 14px 18px;
+    cursor: pointer; transition: all 0.15s; text-align: center;
+  }
+  .goal-card:hover { border-color: var(--primary); background: var(--primary-soft); transform: translateY(-2px); }
+  .goal-card .gc-icon { font-size: 32px; margin-bottom: 12px; }
+  .goal-card h3 { font-size: 14px; font-weight: 700; margin-bottom: 6px; }
+  .goal-card p { font-size: 11px; color: var(--ink-3); line-height: 1.5; }
+  @media (max-width: 500px) { .goal-cards { grid-template-columns: 1fr; } }
   .verdict.great { background: var(--pos-soft); color: var(--pos); }
   .verdict.good { background: var(--warn-soft); color: var(--warn); }
   .verdict.fair { background: var(--neg-soft); color: var(--neg); }
@@ -1085,7 +1110,8 @@
 
 <!-- GUIDED MODE BAR -->
 <div class="guided-bar">
-  🌱 <span>Guided Mode is on — hover over any metric to learn what it means.</span>
+  <span id="guidedBarText">🌱 Guided Mode — pick your goal to get started</span>
+  <button onclick="showGoalModal()" style="background:transparent;border:1px solid var(--primary);color:var(--primary);border-radius:5px;padding:3px 10px;font-size:11px;font-weight:600;cursor:pointer;font-family:inherit;">Change goal</button>
   <button onclick="setMode('pro')" style="margin-left:auto;background:var(--primary);color:white;border:none;border-radius:5px;padding:3px 10px;font-size:11px;font-weight:600;cursor:pointer;font-family:inherit;">Switch to Pro →</button>
 </div>
 
@@ -1099,11 +1125,11 @@
     </button>
     <button class="filter-btn" onclick="openDD(this,'price')">Price <span class="chev">▾</span></button>
     <button class="filter-btn" onclick="openDD(this,'beds')">Beds/Baths <span class="chev">▾</span></button>
-    <button class="filter-btn" onclick="openDD(this,'cap')">Cap Rate <span class="chev">▾</span></button>
-    <button class="filter-btn" onclick="openDD(this,'strategy')">Strategy <span class="chev">▾</span></button>
+    <button class="filter-btn guided-hide" onclick="openDD(this,'cap')">Cap Rate <span class="chev">▾</span></button>
+    <button class="filter-btn guided-hide" onclick="openDD(this,'strategy')">Strategy <span class="chev">▾</span></button>
     <button class="filter-btn" onclick="openDD(this,'score')">DealScore <span class="chev">▾</span></button>
     <button class="filter-btn" onclick="openDD(this,'status')">Status <span class="chev">▾</span></button>
-    <button class="filter-btn" onclick="openDD(this,'more')">More <span class="chev">▾</span></button>
+    <button class="filter-btn guided-hide" onclick="openDD(this,'more')">More <span class="chev">▾</span></button>
   </div>
 
   <button class="save-search">+ Save Search</button>
@@ -1188,6 +1214,33 @@
       </div>
     </div>
     <p style="font-size:12px;color:var(--ink-4);margin-top:20px;">You can switch modes anytime using the button in the top bar.</p>
+  </div>
+</div>
+
+<!-- GOAL MODAL -->
+<div class="goal-modal-overlay" id="goalModal">
+  <div class="goal-modal">
+    <div class="mm-logo">D</div>
+    <h2>What's your goal?</h2>
+    <p>Pick one — we'll show you the right deals and cut out everything else for now.</p>
+    <div class="goal-cards">
+      <div class="goal-card" onclick="setGoal('househack')">
+        <div class="gc-icon">🏠</div>
+        <h3>Live there &amp; save</h3>
+        <p>Buy a duplex. Let a tenant help pay your mortgage every month.</p>
+      </div>
+      <div class="goal-card" onclick="setGoal('cashflow')">
+        <div class="gc-icon">💰</div>
+        <h3>Make monthly income</h3>
+        <p>Own rental properties that put cash in your pocket every month.</p>
+      </div>
+      <div class="goal-card" onclick="setGoal('flip')">
+        <div class="gc-icon">📈</div>
+        <h3>Buy below market</h3>
+        <p>Find undervalued homes you can buy at a discount and profit on.</p>
+      </div>
+    </div>
+    <p style="font-size:11px;color:var(--ink-4);margin-top:20px;">You can change your goal anytime from the Guided bar.</p>
   </div>
 </div>
 
@@ -1660,6 +1713,7 @@
 
   // ===== STATE =====
   let selectedId = null;
+  let currentGoal = null;
   let sortBy = 'score';
   let searchQuery = '';
   const filters = { priceMin: 0, priceMax: 0, bedsMin: 0, bathsMin: 0, capMin: 0, strategies: [], scoreMin: 0, statuses: [] };
@@ -1787,6 +1841,12 @@
       if (filters.domMax && p.dom > filters.domMax) return false;
       return true;
     });
+    if (document.documentElement.getAttribute('data-mode') === 'guided' && currentGoal) {
+      const goalStrats = { househack: ['househack'], cashflow: ['cashflow'], flip: ['flip', 'undervalued'] };
+      const strats = goalStrats[currentGoal] || [];
+      if (strats.length) sorted = sorted.filter(p => p.strategy.some(s => strats.includes(s)));
+    }
+
     sorted.sort((a, b) => {
       switch (sortBy) {
         case 'price-asc': return a.price - b.price;
@@ -1995,9 +2055,108 @@
   }
 
   // ===== DRAWER =====
+  function guidedDrawer(p) {
+    const hh = calcHouseHack(p);
+    const monthlyPI = Math.round(p.price * 0.8 * 0.0072);
+    const monthlyExp = Math.round((p.taxes + p.insurance) / 12 + p.hoa);
+    const monthlyCF = p.rent - monthlyPI - monthlyExp;
+
+    const goalContent = {
+      househack: {
+        icon: '🏠', headline: 'How house hacking works here',
+        keyLabel: 'Your monthly cost after tenant',
+        keyVal: '$' + Math.max(0, hh.effectiveCost).toLocaleString() + '/mo',
+        keyColor: hh.effectiveCost < 600 ? 'var(--pos)' : 'var(--warn)',
+        details: [
+          'You\'d put <strong>' + '$' + hh.downPayment.toLocaleString() + '</strong> down (FHA 3.5% — low down payment)',
+          'Your mortgage would be <strong>' + '$' + hh.totalMortgage.toLocaleString() + '/mo</strong>',
+          'Your tenant pays <strong>' + '$' + (hh.unitRent||0).toLocaleString() + '/mo</strong> in rent',
+          'That covers <strong>' + hh.coversPct + '%</strong> of your mortgage — you pay the rest'
+        ],
+        verdict: hh.effectiveCost < 600 ? { cls: 'great', text: 'Strong deal — tenant covers most of your housing cost.' }
+               : hh.effectiveCost < 1200 ? { cls: 'good', text: 'Good deal — tenant significantly reduces your monthly cost.' }
+               : { cls: 'fair', text: 'Fair deal — you still save vs. renting or buying solo.' }
+      },
+      cashflow: {
+        icon: '💰', headline: 'How the cash flow works',
+        keyLabel: 'Monthly cash flow',
+        keyVal: (monthlyCF >= 0 ? '+$' : '-$') + Math.abs(monthlyCF).toLocaleString() + '/mo',
+        keyColor: monthlyCF > 0 ? 'var(--pos)' : 'var(--neg)',
+        details: [
+          'Rent collected: <strong>$' + p.rent.toLocaleString() + '/mo</strong>',
+          'Mortgage (20% down): <strong>$' + monthlyPI.toLocaleString() + '/mo</strong>',
+          'Taxes, insurance & repairs: <strong>~$' + monthlyExp.toLocaleString() + '/mo</strong>',
+          'You keep: <strong>$' + Math.abs(monthlyCF).toLocaleString() + '/mo ' + (monthlyCF >= 0 ? 'profit' : 'shortfall') + '</strong>'
+        ],
+        verdict: monthlyCF > 300 ? { cls: 'great', text: 'Strong cash flow — this property pays you well above expenses.' }
+               : monthlyCF > 0 ? { cls: 'good', text: 'Positive cash flow — you make money every month.' }
+               : { cls: 'fair', text: 'Breakeven — consider negotiating the price down.' }
+      },
+      flip: {
+        icon: '📈', headline: 'The upside on this deal',
+        keyLabel: 'Discount vs. market value',
+        keyVal: '-' + p.discount + '%',
+        keyColor: p.discount > 10 ? 'var(--pos)' : 'var(--warn)',
+        details: [
+          'List price: <strong>$' + p.price.toLocaleString() + '</strong>',
+          'Comparable homes sell for: <strong>$' + p.comp.toLocaleString() + '</strong>',
+          'You\'d buy it <strong>$' + (p.comp - p.price).toLocaleString() + '</strong> below market',
+          p.sqft ? ('That\'s <strong>$' + Math.round((p.comp - p.price) / p.sqft).toLocaleString() + '/sqft</strong> of built-in equity') : 'Instant equity from day one'
+        ],
+        verdict: p.discount > 12 ? { cls: 'great', text: 'Deep discount — significant built-in equity from day one.' }
+               : p.discount > 7 ? { cls: 'good', text: 'Good discount — priced meaningfully below comps.' }
+               : { cls: 'fair', text: 'Mild discount — worth watching if the price drops further.' }
+      }
+    };
+
+    const g = goalContent[currentGoal] || goalContent.cashflow;
+    return \`
+      <div class="drawer-hero">
+        \${propImage(p.imgV, p.id, 800, 500)}
+        <div class="hero-badge">\${p.status} · \${p.dom} DOM</div>
+      </div>
+      <div class="drawer-body">
+        <div class="drawer-price">
+          <span class="num">$\${p.price.toLocaleString()}</span>
+          <span class="badge">−\${p.discount}% below comp</span>
+        </div>
+        <div style="font-size:13px;color:var(--ink-3);margin:-4px 0 20px;">\${p.addr}, \${p.city}, \${p.state} · \${p.beds}bd/\${p.baths}ba · \${p.sqft?.toLocaleString()||'—'} sqft</div>
+
+        <div style="background:var(--surface-2);border:1px solid var(--border);border-radius:14px;padding:24px;margin-bottom:24px;text-align:center;">
+          <div style="font-size:11px;font-weight:600;color:var(--ink-3);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:8px;">\${g.keyLabel}</div>
+          <div style="font-size:38px;font-weight:800;color:\${g.keyColor};letter-spacing:-0.03em;">\${g.keyVal}</div>
+        </div>
+
+        <h4 style="font-size:13px;font-weight:700;margin-bottom:12px;">\${g.icon} \${g.headline}</h4>
+        <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:24px;">
+          \${g.details.map(d => \`<div style="display:flex;align-items:flex-start;gap:10px;font-size:13px;color:var(--ink-2);line-height:1.5;">
+            <span style="color:var(--primary);font-weight:700;flex-shrink:0;margin-top:1px;">→</span>
+            <span>\${d}</span>
+          </div>\`).join('')}
+        </div>
+
+        <div class="verdict \${g.verdict.cls}" style="display:block;font-size:12px;">
+          \${g.verdict.cls === 'great' ? '✅' : g.verdict.cls === 'good' ? '👍' : '⚠️'} \${g.verdict.text}
+        </div>
+
+        <div style="margin-top:24px;display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+          <button onclick="addToCompare(\${p.id})" style="padding:12px;border:1px solid var(--border);border-radius:8px;background:var(--surface);font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;color:var(--ink);">Compare</button>
+          <button style="padding:12px;border:none;border-radius:8px;background:var(--primary);color:white;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;">Contact Agent</button>
+        </div>
+
+        <p style="font-size:11px;color:var(--ink-4);text-align:center;margin-top:20px;">Want full financials? <button onclick="setMode('pro')" style="background:none;border:none;color:var(--primary);font-size:11px;font-weight:600;cursor:pointer;font-family:inherit;padding:0;">Switch to Pro mode →</button></p>
+      </div>
+    \`;
+  }
+
   function openDrawer() {
     const p = properties.find(x => x.id === selectedId);
     if (!p) return;
+    if (document.documentElement.getAttribute('data-mode') === 'guided') {
+      document.getElementById('drawerContent').innerHTML = guidedDrawer(p);
+      document.getElementById('drawer').classList.add('open');
+      return;
+    }
 
     const monthlyPI = Math.round(p.price * 0.8 * 0.0072);
     const monthlyExp = Math.round((p.taxes + p.insurance) / 12 + p.hoa);
@@ -2127,6 +2286,25 @@
     document.getElementById('modeModal').style.display = 'none';
     const btn = document.getElementById('modeBtn');
     btn.textContent = mode === 'guided' ? '🌱 Guided' : '⚡ Pro';
+    if (mode === 'guided' && !currentGoal) { showGoalModal(); } else { renderList(); }
+  }
+
+  function showGoalModal() {
+    document.getElementById('goalModal').style.display = 'flex';
+  }
+
+  const GOAL_LABELS = {
+    househack: '🏠 Showing homes where a tenant helps cover your mortgage',
+    cashflow: '💰 Showing properties that generate monthly income',
+    flip: '📈 Showing undervalued homes priced below market'
+  };
+
+  function setGoal(goal) {
+    currentGoal = goal;
+    localStorage.setItem('ds-goal', goal);
+    document.getElementById('goalModal').style.display = 'none';
+    const bar = document.getElementById('guidedBarText');
+    if (bar) bar.textContent = GOAL_LABELS[goal] || '🌱 Guided Mode';
     renderList();
   }
 
@@ -2312,6 +2490,20 @@
   } else {
     document.documentElement.setAttribute('data-mode', 'pro');
     document.getElementById('modeModal').style.display = 'flex';
+  }
+
+  const savedGoal = localStorage.getItem('ds-goal');
+  if (savedGoal) {
+    currentGoal = savedGoal;
+    const barEl = document.getElementById('guidedBarText');
+    const GOAL_LABELS_INIT = {
+      househack: '🏠 Showing homes where a tenant helps cover your mortgage',
+      cashflow: '💰 Showing properties that generate monthly income',
+      flip: '📈 Showing undervalued homes priced below market'
+    };
+    if (barEl) barEl.textContent = GOAL_LABELS_INIT[savedGoal] || '🌱 Guided Mode';
+  } else if ((savedMode || 'pro') === 'guided') {
+    showGoalModal();
   }
 
   initMap();
