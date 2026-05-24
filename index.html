@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>DealScope — Investment Property Intelligence</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
 <style>
   :root {
     --bg: #f5f7fa;
@@ -393,40 +394,8 @@
     width: 100%;
     height: 100%;
     position: relative;
-    background:
-      radial-gradient(circle at 30% 40%, #d4dfe9 0%, transparent 35%),
-      radial-gradient(circle at 70% 60%, #c8d4df 0%, transparent 40%),
-      linear-gradient(to bottom right, #e8eef5, #d8e2ec);
   }
-
-  /* Procedural "map" lines as roads */
-  .map::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background-image:
-      linear-gradient(90deg, transparent 0, transparent 10%, #fff 10%, #fff 10.3%, transparent 10.3%),
-      linear-gradient(90deg, transparent 0, transparent 35%, #fff 35%, #fff 35.4%, transparent 35.4%),
-      linear-gradient(90deg, transparent 0, transparent 62%, #fff 62%, #fff 62.3%, transparent 62.3%),
-      linear-gradient(90deg, transparent 0, transparent 85%, #fff 85%, #fff 85.3%, transparent 85.3%),
-      linear-gradient(0deg, transparent 0, transparent 18%, #fff 18%, #fff 18.4%, transparent 18.4%),
-      linear-gradient(0deg, transparent 0, transparent 45%, #fff 45%, #fff 45.3%, transparent 45.3%),
-      linear-gradient(0deg, transparent 0, transparent 72%, #fff 72%, #fff 72.4%, transparent 72.4%);
-    opacity: 0.6;
-  }
-
-  .map::after {
-    content: '';
-    position: absolute;
-    top: 40%;
-    left: -10%;
-    width: 130%;
-    height: 80px;
-    background: linear-gradient(to right, transparent, #a3c4e0 20%, #a3c4e0 80%, transparent);
-    opacity: 0.6;
-    transform: rotate(-8deg);
-    border-radius: 40px;
-  }
+  .map::before, .map::after { display: none; }
 
   /* Map pins */
   .pin {
@@ -485,7 +454,7 @@
     display: flex;
     flex-direction: column;
     gap: 8px;
-    z-index: 20;
+    z-index: 800;
   }
   .map-btn {
     width: 36px;
@@ -510,7 +479,7 @@
     border-radius: 8px;
     padding: 12px 16px;
     box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-    z-index: 20;
+    z-index: 800;
     display: flex;
     gap: 20px;
   }
@@ -541,7 +510,7 @@
     display: flex;
     gap: 14px;
     font-size: 11px;
-    z-index: 20;
+    z-index: 800;
   }
   .legend-item { display: flex; align-items: center; gap: 5px; color: var(--ink-2); }
   .legend-dot { width: 10px; height: 10px; border-radius: 50%; }
@@ -986,10 +955,9 @@
       </div>
 
       <div class="map-controls">
-        <button class="map-btn">+</button>
-        <button class="map-btn">−</button>
-        <button class="map-btn" title="Locate">⊙</button>
-        <button class="map-btn" title="Layers">▦</button>
+        <button class="map-btn" onclick="map&&map.zoomIn()">+</button>
+        <button class="map-btn" onclick="map&&map.zoomOut()">−</button>
+        <button class="map-btn" title="Fit all" onclick="fitAll()">⊙</button>
       </div>
 
       <div class="map-legend">
@@ -1017,11 +985,12 @@
   <div id="drawerContent"></div>
 </aside>
 
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
   // ===== DATA =====
   const properties = [
     {
-      id: 1, addr: '3304 Hawthorne Ave', city: 'Cleveland', state: 'OH', zip: '44109',
+      id: 1, lat: 41.4555, lng: -81.7023, addr: '3304 Hawthorne Ave', city: 'Cleveland', state: 'OH', zip: '44109',
       price: 128000, comp: 152000, sqft: 1420, lot: 0.14, beds: 3, baths: 2, year: 1924, type: 'SFR',
       rent: 1650, taxes: 2200, insurance: 950, hoa: 0,
       score: 94, grade: 'A', strategy: ['cashflow', 'brrrr'], status: 'Active',
@@ -1036,7 +1005,7 @@
       ]
     },
     {
-      id: 2, addr: '2847 Maple Creek Dr', city: 'Provo', state: 'UT', zip: '84604',
+      id: 2, lat: 40.2530, lng: -111.6486, addr: '2847 Maple Creek Dr', city: 'Provo', state: 'UT', zip: '84604',
       price: 425000, comp: 478000, sqft: 2240, lot: 0.22, beds: 4, baths: 3, year: 2008, type: 'SFR',
       rent: 2850, taxes: 3100, insurance: 1400, hoa: 0,
       score: 91, grade: 'A', strategy: ['undervalued', 'brrrr'], status: 'Active',
@@ -1051,7 +1020,7 @@
       ]
     },
     {
-      id: 3, addr: '1142 W 800 S', city: 'Salt Lake City', state: 'UT', zip: '84104',
+      id: 3, lat: 40.7447, lng: -111.9200, addr: '1142 W 800 S', city: 'Salt Lake City', state: 'UT', zip: '84104',
       price: 358000, comp: 392000, sqft: 1680, lot: 0.11, beds: 3, baths: 2, year: 1978, type: 'SFR',
       rent: 2400, taxes: 2400, insurance: 1100, hoa: 0,
       score: 87, grade: 'A', strategy: ['cashflow', 'undervalued'], status: 'Active',
@@ -1066,7 +1035,7 @@
       ]
     },
     {
-      id: 4, addr: '906 Sycamore Pl', city: 'Houston', state: 'TX', zip: '77008',
+      id: 4, lat: 29.7752, lng: -95.4019, addr: '906 Sycamore Pl', city: 'Houston', state: 'TX', zip: '77008',
       price: 285000, comp: 318000, sqft: 1560, lot: 0.13, beds: 3, baths: 2, year: 1962, type: 'SFR',
       rent: 2050, taxes: 5400, insurance: 1600, hoa: 0,
       score: 84, grade: 'A', strategy: ['flip', 'brrrr'], status: 'Active',
@@ -1081,7 +1050,7 @@
       ]
     },
     {
-      id: 5, addr: '233 W 4500 S', city: 'Murray', state: 'UT', zip: '84107',
+      id: 5, lat: 40.6335, lng: -111.9005, addr: '233 W 4500 S', city: 'Murray', state: 'UT', zip: '84107',
       price: 445000, comp: 472000, sqft: 2110, lot: 0.18, beds: 4, baths: 2, year: 1979, type: 'SFR',
       rent: 2750, taxes: 2900, insurance: 1300, hoa: 0,
       score: 83, grade: 'A', strategy: ['cashflow', 'brrrr'], status: 'Active',
@@ -1096,7 +1065,7 @@
       ]
     },
     {
-      id: 6, addr: '7712 Pinewood Ct', city: 'Charlotte', state: 'NC', zip: '28210',
+      id: 6, lat: 35.1269, lng: -80.8789, addr: '7712 Pinewood Ct', city: 'Charlotte', state: 'NC', zip: '28210',
       price: 342000, comp: 365000, sqft: 1920, lot: 0.16, beds: 4, baths: 2, year: 1995, type: 'SFR',
       rent: 2200, taxes: 2600, insurance: 1200, hoa: 240,
       score: 81, grade: 'B', strategy: ['cashflow', 'undervalued'], status: 'Active',
@@ -1111,7 +1080,7 @@
       ]
     },
     {
-      id: 7, addr: '1287 Birch Hollow', city: 'Ogden', state: 'UT', zip: '84403',
+      id: 7, lat: 41.2230, lng: -111.9738, addr: '1287 Birch Hollow', city: 'Ogden', state: 'UT', zip: '84403',
       price: 312000, comp: 339000, sqft: 1780, lot: 0.15, beds: 3, baths: 2, year: 1988, type: 'SFR',
       rent: 2100, taxes: 2200, insurance: 1050, hoa: 0,
       score: 79, grade: 'B', strategy: ['cashflow'], status: 'Active',
@@ -1126,7 +1095,7 @@
       ]
     },
     {
-      id: 8, addr: '8821 Brookhollow Ln', city: 'Austin', state: 'TX', zip: '78745',
+      id: 8, lat: 30.1934, lng: -97.7784, addr: '8821 Brookhollow Ln', city: 'Austin', state: 'TX', zip: '78745',
       price: 489000, comp: 525000, sqft: 2010, lot: 0.18, beds: 3, baths: 2, year: 2002, type: 'SFR',
       rent: 2950, taxes: 8800, insurance: 1800, hoa: 0,
       score: 78, grade: 'B', strategy: ['undervalued'], status: 'Price Cut',
@@ -1141,7 +1110,7 @@
       ]
     },
     {
-      id: 9, addr: '442 E 11th St', city: 'Jacksonville', state: 'FL', zip: '32206',
+      id: 9, lat: 30.3322, lng: -81.6557, addr: '442 E 11th St', city: 'Jacksonville', state: 'FL', zip: '32206',
       price: 178000, comp: 198000, sqft: 1320, lot: 0.12, beds: 3, baths: 1, year: 1948, type: 'SFR',
       rent: 1750, taxes: 1900, insurance: 2400, hoa: 0,
       score: 76, grade: 'B', strategy: ['brrrr', 'cashflow'], status: 'Active',
@@ -1156,7 +1125,7 @@
       ]
     },
     {
-      id: 10, addr: '6620 Willowbrook Ln', city: 'Raleigh', state: 'NC', zip: '27606',
+      id: 10, lat: 35.7609, lng: -78.7228, addr: '6620 Willowbrook Ln', city: 'Raleigh', state: 'NC', zip: '27606',
       price: 398000, comp: 421000, sqft: 2080, lot: 0.20, beds: 4, baths: 3, year: 2011, type: 'SFR',
       rent: 2650, taxes: 3200, insurance: 1300, hoa: 180,
       score: 80, grade: 'B', strategy: ['cashflow', 'undervalued'], status: 'Active',
@@ -1171,7 +1140,7 @@
       ]
     },
     {
-      id: 11, addr: '15 Oakridge Dr', city: 'Columbus', state: 'OH', zip: '43223',
+      id: 11, lat: 39.9425, lng: -83.0102, addr: '15 Oakridge Dr', city: 'Columbus', state: 'OH', zip: '43223',
       price: 154000, comp: 169000, sqft: 1140, lot: 0.13, beds: 2, baths: 1, year: 1955, type: 'SFR',
       rent: 1450, taxes: 1800, insurance: 850, hoa: 0,
       score: 72, grade: 'B', strategy: ['cashflow'], status: 'Active',
@@ -1185,7 +1154,7 @@
       ]
     },
     {
-      id: 12, addr: '524 NE 64th St', city: 'Miami', state: 'FL', zip: '33138',
+      id: 12, lat: 25.8525, lng: -80.1819, addr: '524 NE 64th St', city: 'Miami', state: 'FL', zip: '33138',
       price: 612000, comp: 645000, sqft: 1840, lot: 0.14, beds: 3, baths: 2, year: 1956, type: 'SFR',
       rent: 4200, taxes: 7200, insurance: 5800, hoa: 0,
       score: 73, grade: 'B', strategy: ['cashflow', 'undervalued'], status: 'Active',
@@ -1449,30 +1418,53 @@
     });
   }
 
-  // ===== RENDER MAP =====
-  function renderMap() {
-    const map = document.getElementById('map');
-    // Remove existing pins
-    map.querySelectorAll('.pin').forEach(p => p.remove());
+  // ===== MAP =====
+  let map = null;
+  const leafletMarkers = {};
+  const gradeColors = { A: '#16a34a', B: '#2563eb', C: '#d97706', D: '#6b7280' };
 
-    properties.forEach(p => {
-      const pin = document.createElement('div');
-      pin.className = `pin ${p.grade} ${selectedId === p.id ? 'selected' : ''}`;
-      pin.style.left = p.mapX + '%';
-      pin.style.top = p.mapY + '%';
-      pin.dataset.id = p.id;
-      pin.innerHTML = `<div class="pin-body">${fmt$k(p.price)}</div>`;
-      pin.addEventListener('click', () => {
-        selectedId = p.id;
-        renderList();
-        renderMap();
-        openDrawer();
-        // scroll into view
-        const row = document.querySelector(`.row[data-id="${p.id}"]`);
-        if (row) row.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      });
-      map.appendChild(pin);
+  function initMap() {
+    map = L.map('map', { zoomControl: false, attributionControl: true }).setView([37.8, -96], 4);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+    }).addTo(map);
+  }
+
+  function makeIcon(p) {
+    const sel = selectedId === p.id;
+    const c = gradeColors[p.grade] || '#1e5fd9';
+    return L.divIcon({
+      className: '',
+      iconSize: [70, 36],
+      iconAnchor: [35, 36],
+      html: `<div style="background:${sel?c:'#fff'};color:${sel?'#fff':c};border:2px solid ${c};border-radius:14px;padding:4px 10px;font-size:12px;font-weight:700;white-space:nowrap;box-shadow:0 2px 8px rgba(0,0,0,0.18);font-family:Inter,-apple-system,sans-serif;position:relative;">${fmt$k(p.price)}<div style="position:absolute;bottom:-7px;left:50%;transform:translateX(-50%) rotate(45deg);width:10px;height:10px;background:${sel?c:'#fff'};border-right:2px solid ${c};border-bottom:2px solid ${c};"></div></div>`
     });
+  }
+
+  function renderMap() {
+    if (!map) return;
+    properties.forEach(p => {
+      if (leafletMarkers[p.id]) {
+        leafletMarkers[p.id].setIcon(makeIcon(p));
+      } else {
+        const m = L.marker([p.lat, p.lng], { icon: makeIcon(p) }).addTo(map);
+        m.on('click', () => {
+          selectedId = p.id;
+          renderList();
+          renderMap();
+          openDrawer();
+          const row = document.querySelector(`.row[data-id="${p.id}"]`);
+          if (row) row.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        });
+        leafletMarkers[p.id] = m;
+      }
+    });
+  }
+
+  function fitAll() {
+    if (!map) return;
+    const bounds = properties.map(p => [p.lat, p.lng]);
+    map.fitBounds(bounds, { padding: [40, 40] });
   }
 
   // ===== DRAWER =====
@@ -1632,6 +1624,7 @@
   });
 
   // ===== INIT =====
+  initMap();
   renderList();
   renderMap();
 </script>
