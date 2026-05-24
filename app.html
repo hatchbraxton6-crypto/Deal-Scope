@@ -1490,7 +1490,7 @@
     <button class="drawer-close" onclick="closeDrawer()">×</button>
     <div class="drawer-actions">
       <button class="drawer-action">☆ Save</button>
-      <button class="drawer-action" onclick="addToCompare(selectedId);alert('Added to compare — click the Compare tab to view.')">⊕ Compare</button>
+      <button class="drawer-action" onclick="addToCompare(selectedId);showToast('Added to Compare tab')">⊕ Compare</button>
       <button class="drawer-action" onclick="exportCSV()">⤓ Export</button>
       <button class="drawer-action primary">Skip Trace</button>
     </div>
@@ -1855,7 +1855,7 @@
   // ===== CSV EXPORT =====
   function exportCSV() {
     const headers = ['Address','City','State','ZIP','Price','Beds','Baths','Sqft','Year','Type','Rent/mo','Cap Rate','CoC%','DealScore','Grade','Status','DOM','Discount%','Owner','Owner Type','Equity%'];
-    const rows = properties.map(p => [p.addr,p.city,p.state,p.zip,p.price,p.beds,p.baths,p.sqft,p.year,p.type,p.rent,p.cap,p.coc,p.score,p.grade,p.status,p.dom,p.discount,p.owner,p.ownerType,p.equity]);
+    const rows = currentFiltered.map(p => [p.addr,p.city,p.state,p.zip,p.price,p.beds,p.baths,p.sqft,p.year,p.type,p.rent,p.cap,p.coc,p.score,p.grade,p.status,p.dom,p.discount,p.owner,p.ownerType,p.equity]);
     const csv = [headers,...rows].map(r => r.map(v => `"${String(v).replace(/"/g,'""')}"`).join(',')).join('\n');
     const a = Object.assign(document.createElement('a'), { href: URL.createObjectURL(new Blob([csv],{type:'text/csv'})), download: 'dealscope-export.csv' });
     a.click();
@@ -1905,6 +1905,7 @@
       }
     });
 
+    currentFiltered = sorted;
     document.getElementById('resultCount').textContent = sorted.length;
     updateFilterChip();
 
@@ -1958,6 +1959,15 @@
   let tileLayer = null;
   const leafletMarkers = {};
   const gradeColors = { A: '#16a34a', B: '#2563eb', C: '#d97706', D: '#6b7280' };
+  let currentFiltered = [...properties];
+
+  function showToast(msg) {
+    const t = document.createElement('div');
+    t.style.cssText = 'position:fixed;bottom:72px;left:50%;transform:translateX(-50%);background:var(--ink);color:white;padding:10px 18px;border-radius:8px;font-size:13px;font-weight:600;z-index:2000;pointer-events:none;white-space:nowrap;';
+    t.textContent = msg;
+    document.body.appendChild(t);
+    setTimeout(() => { t.style.transition='opacity 0.3s'; t.style.opacity='0'; setTimeout(()=>t.remove(),300); }, 2000);
+  }
 
   function initMap() {
     map = L.map('map', { zoomControl: false, attributionControl: true }).setView([37.8, -96], 4);
@@ -1983,10 +1993,9 @@
 
   function renderMap() {
     if (!map) return;
+    const visibleIds = new Set(currentFiltered.map(p => p.id));
     properties.forEach(p => {
-      if (leafletMarkers[p.id]) {
-        leafletMarkers[p.id].setIcon(makeIcon(p));
-      } else {
+      if (!leafletMarkers[p.id]) {
         const m = L.marker([p.lat, p.lng], { icon: makeIcon(p) }).addTo(map);
         m.on('click', () => {
           selectedId = p.id;
@@ -1997,6 +2006,13 @@
           if (row) row.scrollIntoView({ behavior: 'smooth', block: 'center' });
         });
         leafletMarkers[p.id] = m;
+      }
+      const marker = leafletMarkers[p.id];
+      marker.setIcon(makeIcon(p));
+      if (visibleIds.has(p.id)) {
+        if (!map.hasLayer(marker)) marker.addTo(map);
+      } else {
+        if (map.hasLayer(marker)) marker.remove();
       }
     });
   }
@@ -2187,7 +2203,7 @@
         </div>
 
         <div style="margin-top:24px;display:grid;grid-template-columns:1fr 1fr;gap:10px;">
-          <button onclick="addToCompare(${p.id})" style="padding:12px;border:1px solid var(--border);border-radius:8px;background:var(--surface);font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;color:var(--ink);">Compare</button>
+          <button onclick="addToCompare(${p.id});showToast('Added to Compare tab')" style="padding:12px;border:1px solid var(--border);border-radius:8px;background:var(--surface);font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;color:var(--ink);">Compare</button>
           <button style="padding:12px;border:none;border-radius:8px;background:var(--primary);color:white;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;">Contact Agent</button>
         </div>
 
