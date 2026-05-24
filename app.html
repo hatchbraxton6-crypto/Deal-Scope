@@ -912,6 +912,16 @@
   [data-mode="guided"] .guided-bar { display: flex; }
   [data-mode="guided"] .guided-only { display: block !important; }
   .guided-only { display: none; }
+  .goal-chip {
+    display: none; align-items: center; gap: 6px;
+    padding: 0 12px; height: 28px; border-radius: 20px;
+    background: var(--primary-soft); border: 1px solid var(--primary);
+    color: var(--primary); font-size: 12px; font-weight: 600;
+    cursor: pointer; font-family: inherit; white-space: nowrap; flex-shrink: 0;
+    transition: background 0.12s;
+  }
+  .goal-chip:hover { background: #d4e4ff; }
+  [data-mode="guided"] .goal-chip { display: inline-flex; }
 
   /* Tooltips */
   [data-tip] { position: relative; }
@@ -1246,6 +1256,7 @@
     <button class="filter-btn guided-hide" onclick="openDD(this,'more')">More <span class="chev">▾</span></button>
   </div>
 
+  <button class="goal-chip" id="goalChip" onclick="showGoalModal()">🎯 Set goal</button>
   <button class="save-search">+ Save Search</button>
 </div>
 
@@ -2017,7 +2028,12 @@
     const pill = document.querySelector('[data-filter-toggle] .count');
     if (pill) pill.textContent = count;
     const btn = document.querySelector('[data-filter-toggle]');
-    if (btn) btn.classList.toggle('active', count > 0);
+    if (btn) {
+      btn.classList.toggle('active', count > 0);
+      btn.innerHTML = count > 0
+        ? `Filters <span class="count">${count}</span> <span style="opacity:0.7;font-size:11px;">· Reset</span>`
+        : `Filters <span class="count">0</span>`;
+    }
   }
 
   function ddHtml(type) {
@@ -2141,9 +2157,12 @@
     if (_ctx) {
       if (_isGuided && currentGoal) {
         const _names = { househack: 'house hacks', cashflow: 'cash flow deals', flip: 'below-market deals' };
+        const _icons = { househack: '🏠', cashflow: '💰', flip: '📈' };
         const _name = _names[currentGoal] || 'deals';
         const _loc = currentLocation ? ` in ${currentLocation}` : '';
-        _ctx.innerHTML = `<strong id="resultCount">${sorted.length}</strong> ${_name}${_loc} · <button onclick="showGoalModal()" style="background:none;border:none;color:var(--primary);font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;padding:0;">change goal</button>`;
+        _ctx.innerHTML = `<strong id="resultCount">${sorted.length}</strong> ${_name}${_loc} · <button onclick="showGoalModal()" style="background:none;border:none;color:var(--primary);font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;padding:0;">change</button>`;
+        const _chip = document.getElementById('goalChip');
+        if (_chip) _chip.textContent = (_icons[currentGoal] || '🎯') + ' ' + _name + (_loc || '');
       } else {
         const _above = sorted.filter(p => p.score >= 75).length;
         _ctx.innerHTML = `<strong id="resultCount">${sorted.length}</strong> properties · <span style="color:var(--pos);">${_above} above 75 DealScore</span>`;
@@ -2845,7 +2864,7 @@
     document.getElementById('mobMapTab').classList.toggle('active', view === 'map');
     document.querySelector('.results-panel').classList.toggle('mob-hidden', view === 'map');
     document.querySelector('.map-panel').classList.toggle('mob-active', view === 'map');
-    if (view === 'map' && map) setTimeout(() => map.invalidateSize(), 50);
+    if (view === 'map' && map) setTimeout(() => { map.invalidateSize(); renderMap(); }, 80);
   }
 
   // ===== INIT =====
