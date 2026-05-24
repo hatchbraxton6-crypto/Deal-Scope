@@ -1229,12 +1229,6 @@
 </div>
 
 <!-- GUIDED MODE BAR -->
-<div class="guided-bar">
-  <span id="guidedBarText">🌱 Guided Mode — pick your goal to get started</span>
-  <button onclick="showGoalModal()" style="background:transparent;border:1px solid var(--primary);color:var(--primary);border-radius:5px;padding:3px 10px;font-size:11px;font-weight:600;cursor:pointer;font-family:inherit;">Change goal</button>
-  <button onclick="setMode('pro')" style="margin-left:auto;background:var(--primary);color:white;border:none;border-radius:5px;padding:3px 10px;font-size:11px;font-weight:600;cursor:pointer;font-family:inherit;">Switch to Pro →</button>
-</div>
-
 <!-- SEARCH BAR -->
 <div class="searchbar">
   <input type="text" class="search-box" id="search" placeholder="Search address, city, ZIP, or county..."/>
@@ -1261,7 +1255,7 @@
   <!-- LEFT: RESULTS LIST -->
   <section class="results-panel">
     <div class="results-header">
-      <div class="count"><strong id="resultCount">12</strong> properties · <span style="color: var(--pos);">9 above 75 DealScore</span></div>
+      <div class="count" id="resultsContext"><strong id="resultCount">12</strong> properties · <span style="color: var(--pos);">9 above 75 DealScore</span></div>
       <div class="controls">
         <select class="sort-select" id="sortBy">
           <option value="score">Sort: DealScore (high)</option>
@@ -2020,7 +2014,19 @@
     });
 
     currentFiltered = sorted;
-    document.getElementById('resultCount').textContent = sorted.length;
+    const _isGuided = document.documentElement.getAttribute('data-mode') === 'guided';
+    const _ctx = document.getElementById('resultsContext');
+    if (_ctx) {
+      if (_isGuided && currentGoal) {
+        const _names = { househack: 'house hacks', cashflow: 'cash flow deals', flip: 'below-market deals' };
+        const _name = _names[currentGoal] || 'deals';
+        const _loc = currentLocation ? ` in ${currentLocation}` : '';
+        _ctx.innerHTML = `<strong id="resultCount">${sorted.length}</strong> ${_name}${_loc} · <button onclick="showGoalModal()" style="background:none;border:none;color:var(--primary);font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;padding:0;">change goal</button>`;
+      } else {
+        const _above = sorted.filter(p => p.score >= 75).length;
+        _ctx.innerHTML = `<strong id="resultCount">${sorted.length}</strong> properties · <span style="color:var(--pos);">${_above} above 75 DealScore</span>`;
+      }
+    }
     updateFilterChip();
 
     document.getElementById('resultsList').innerHTML = sorted.map(p => `
@@ -2540,13 +2546,7 @@
   }
 
   function updateGuidedBar() {
-    const icons = { househack: '🏠', cashflow: '💰', flip: '📈' };
-    const names = { househack: 'House hacks', cashflow: 'Cash flow deals', flip: 'Below-market deals' };
-    const icon = icons[currentGoal] || '🌱';
-    const name = names[currentGoal] || 'Deals';
-    const locText = currentLocation ? ` in ${currentLocation}` : ' — showing all markets';
-    const bar = document.getElementById('guidedBarText');
-    if (bar) bar.textContent = icon + ' ' + name + locText;
+    // Context is now rendered inline in renderList — nothing to update separately
   }
 
   function setGoal(goal) {
