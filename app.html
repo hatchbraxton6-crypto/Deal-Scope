@@ -1365,20 +1365,20 @@
       <div class="mm-logo">📍</div>
       <h2>Where are you looking?</h2>
       <p>Enter a city or state — we'll only show deals in that area.</p>
-      <input type="text" id="goalLocationInput" placeholder="e.g. Cleveland, OH or Nashville"
+      <input type="text" id="goalLocationInput" placeholder="e.g. Salt Lake City, Provo, UT"
         style="width:100%;padding:12px 14px;border:1.5px solid var(--border);border-radius:9px;font-size:15px;font-family:inherit;color:var(--ink);background:var(--surface);outline:none;margin:16px 0 12px;box-sizing:border-box;"
         onfocus="this.style.borderColor='var(--primary)'" onblur="this.style.borderColor='var(--border)'"
         onkeydown="if(event.key==='Enter')confirmGoal()"/>
       <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:20px;">
         <span style="font-size:11px;color:var(--ink-4);width:100%;margin-bottom:2px;">Quick pick:</span>
-        <button onclick="quickLocation('Cleveland')" class="loc-chip">Cleveland</button>
-        <button onclick="quickLocation('Nashville')" class="loc-chip">Nashville</button>
-        <button onclick="quickLocation('Columbus')" class="loc-chip">Columbus</button>
-        <button onclick="quickLocation('Charlotte')" class="loc-chip">Charlotte</button>
-        <button onclick="quickLocation('Houston')" class="loc-chip">Houston</button>
-        <button onclick="quickLocation('Austin')" class="loc-chip">Austin</button>
-        <button onclick="quickLocation('Raleigh')" class="loc-chip">Raleigh</button>
-        <button onclick="quickLocation('Miami')" class="loc-chip">Miami</button>
+        <button onclick="quickLocation('UT')" class="loc-chip" style="background:var(--primary-soft);border-color:var(--primary);color:var(--primary);font-weight:700;">All Utah</button>
+        <button onclick="quickLocation('Salt Lake City')" class="loc-chip">Salt Lake City</button>
+        <button onclick="quickLocation('Provo')" class="loc-chip">Provo</button>
+        <button onclick="quickLocation('Lehi')" class="loc-chip">Lehi</button>
+        <button onclick="quickLocation('Ogden')" class="loc-chip">Ogden</button>
+        <button onclick="quickLocation('St. George')" class="loc-chip">St. George</button>
+        <button onclick="quickLocation('Logan')" class="loc-chip">Logan</button>
+        <button onclick="quickLocation('Orem')" class="loc-chip">Orem</button>
       </div>
       <div style="display:flex;gap:10px;">
         <button onclick="backToGoal()" style="flex:1;padding:11px;border:1.5px solid var(--border);border-radius:8px;background:var(--surface);font-size:14px;font-weight:600;cursor:pointer;font-family:inherit;color:var(--ink-2);">← Back</button>
@@ -1818,6 +1818,128 @@
         { type: 'pos', text: 'Nashville is top 3 fastest-growing rental markets — strong appreciation upside.' },
         { type: 'pos', text: '10.8% below comps in a hot market — rare find.' }
       ]
+    },
+
+    // ── Utah focus properties ──────────────────────────────────────────────
+    {
+      id: 15, lat: 40.3916, lng: -111.8760, addr: '642 N 900 W', city: 'Lehi', state: 'UT', zip: '84043',
+      price: 485000, comp: 533000, sqft: 2100, lot: 0.18, beds: 4, baths: 2, year: 2004, type: 'Duplex',
+      rent: 3600, unitRent: 1800, taxes: 2400, insurance: 1440, hoa: 0,
+      score: 86, grade: 'A', strategy: ['househack', 'cashflow'], status: 'Active',
+      cap: 6.8, coc: 9.2, dom: 22, discount: 9.1,
+      mapX: 50, mapY: 50, imgV: 1,
+      owner: 'Davidson Family Trust', ownerType: 'Trust', equity: 42,
+      tagline: 'House Hack · Lehi · Tech corridor duplex',
+      insights: [
+        { type: 'pos', text: 'Unit B brings $1,800/mo — covers 74% of your FHA mortgage payment.' },
+        { type: 'pos', text: 'Lehi is Utah\'s fastest-growing city — home to Adobe, IM Flash, and dozens of startups.' },
+        { type: 'pos', text: '9% below comps with strong rental demand from tech workers.' }
+      ]
+    },
+    {
+      id: 16, lat: 37.0966, lng: -113.5684, addr: '1845 S River Rd', city: 'St. George', state: 'UT', zip: '84790',
+      price: 389000, comp: 448000, sqft: 1680, lot: 0.21, beds: 3, baths: 2, year: 1998, type: 'Single Family',
+      rent: 2200, unitRent: 0, taxes: 1800, insurance: 960, hoa: 0,
+      score: 89, grade: 'A', strategy: ['undervalued', 'flip'], status: 'Price Cut',
+      cap: 5.9, coc: 8.1, dom: 41, discount: 13.2,
+      mapX: 50, mapY: 50, imgV: 3,
+      owner: 'Vacant Estate', ownerType: 'Estate', equity: 78,
+      tagline: 'Deep discount · St. George · Motivated seller',
+      insights: [
+        { type: 'pos', text: '13% below comps — estate sale with no emotional attachment to price.' },
+        { type: 'pos', text: 'St. George is the #1 fastest-growing metro in the US — appreciation potential is high.' },
+        { type: 'warn', text: 'Cosmetic updates needed — budget $15–20k for full value capture.' }
+      ]
+    },
+    {
+      id: 17, lat: 40.2994, lng: -111.7238, addr: '784 W 400 N', city: 'Orem', state: 'UT', zip: '84057',
+      price: 342000, comp: 379000, sqft: 1420, lot: 0.13, beds: 3, baths: 1, year: 1978, type: 'Single Family',
+      rent: 1950, unitRent: 0, taxes: 1500, insurance: 840, hoa: 0,
+      score: 83, grade: 'A', strategy: ['brrrr', 'cashflow'], status: 'Active',
+      cap: 7.2, coc: 10.5, dom: 18, discount: 9.8,
+      mapX: 50, mapY: 50, imgV: 0,
+      owner: 'Phillip Garrett', ownerType: 'Individual', equity: 55,
+      tagline: 'BRRRR candidate · Orem · Value-add upside',
+      insights: [
+        { type: 'pos', text: 'Strong BRRRR candidate — ARV of $379k supports a 75% refi of $284k after rehab.' },
+        { type: 'pos', text: 'Half mile from UVU campus — strong renter demand year-round.' },
+        { type: 'warn', text: 'Older systems (roof, HVAC) — factor $10–15k into rehab budget.' }
+      ]
+    },
+    {
+      id: 18, lat: 40.6024, lng: -111.9851, addr: '3219 W 8600 S', city: 'West Jordan', state: 'UT', zip: '84088',
+      price: 528000, comp: 574000, sqft: 2450, lot: 0.23, beds: 5, baths: 3, year: 2001, type: 'Duplex',
+      rent: 3900, unitRent: 1950, taxes: 2700, insurance: 1560, hoa: 0,
+      score: 81, grade: 'B', strategy: ['househack', 'cashflow'], status: 'Active',
+      cap: 6.5, coc: 8.8, dom: 14, discount: 8.0,
+      mapX: 50, mapY: 50, imgV: 2,
+      owner: 'Robert & Amy Fitch', ownerType: 'Individual', equity: 38,
+      tagline: 'House Hack · West Jordan · Solid duplex',
+      insights: [
+        { type: 'pos', text: 'Unit B brings $1,950/mo — covers 68% of your mortgage while you live in Unit A.' },
+        { type: 'pos', text: 'West Jordan is one of SLC\'s most stable rental markets with low vacancy.' },
+        { type: 'pos', text: 'Both units have separate entrances and updated kitchens.' }
+      ]
+    },
+    {
+      id: 19, lat: 40.3777, lng: -111.7960, addr: '96 N 200 E', city: 'American Fork', state: 'UT', zip: '84003',
+      price: 298000, comp: 344000, sqft: 1180, lot: 0.15, beds: 3, baths: 1, year: 1965, type: 'Single Family',
+      rent: 1800, unitRent: 0, taxes: 1200, insurance: 720, hoa: 0,
+      score: 87, grade: 'A', strategy: ['brrrr', 'flip'], status: 'Active',
+      cap: 7.8, coc: 11.2, dom: 35, discount: 13.4,
+      mapX: 50, mapY: 50, imgV: 1,
+      owner: 'Vacant — Out of State', ownerType: 'Absentee', equity: 82,
+      tagline: 'BRRRR / Flip · American Fork · Out-of-state seller',
+      insights: [
+        { type: 'pos', text: '13% below comps — absentee owner hasn\'t updated pricing in 60 days.' },
+        { type: 'pos', text: 'Solid bones — 1965 build with original hardwood floors worth refinishing.' },
+        { type: 'pos', text: 'After $25k rehab, ARV of $344k supports a full BRRRR refi.' }
+      ]
+    },
+    {
+      id: 20, lat: 40.5748, lng: -111.8671, addr: '8823 S 1300 E', city: 'Sandy', state: 'UT', zip: '84094',
+      price: 445000, comp: 480000, sqft: 2050, lot: 0.20, beds: 4, baths: 2, year: 1989, type: 'Single Family',
+      rent: 2400, unitRent: 0, taxes: 2200, insurance: 1320, hoa: 0,
+      score: 77, grade: 'B', strategy: ['cashflow'], status: 'Active',
+      cap: 6.1, coc: 8.4, dom: 12, discount: 7.3,
+      mapX: 50, mapY: 50, imgV: 3,
+      owner: 'Karen Whitmore', ownerType: 'Individual', equity: 47,
+      tagline: 'Cash Flow · Sandy · Reliable rental',
+      insights: [
+        { type: 'pos', text: 'Sandy commands premium rents — strong schools and low crime drive consistent demand.' },
+        { type: 'pos', text: 'Fully updated kitchen and bathrooms — tenant-ready with no work needed.' },
+        { type: 'warn', text: 'Cap rate is moderate — best held long-term for appreciation + cash flow.' }
+      ]
+    },
+    {
+      id: 21, lat: 40.5244, lng: -111.8630, addr: '14582 S 700 E', city: 'Draper', state: 'UT', zip: '84020',
+      price: 612000, comp: 688000, sqft: 2800, lot: 0.28, beds: 4, baths: 2, year: 2006, type: 'Single Family',
+      rent: 2800, unitRent: 0, taxes: 3100, insurance: 1800, hoa: 180,
+      score: 78, grade: 'B', strategy: ['undervalued', 'cashflow'], status: 'Active',
+      cap: 5.2, coc: 7.1, dom: 29, discount: 11.0,
+      mapX: 50, mapY: 50, imgV: 0,
+      owner: 'Brendan & Lisa Park', ownerType: 'Individual', equity: 51,
+      tagline: 'Undervalued · Draper · Premium zip code',
+      insights: [
+        { type: 'pos', text: '11% below comps in Draper — one of Utah\'s most desirable zip codes.' },
+        { type: 'pos', text: 'Draper tech employers (eBay, Ancestry, Extra Space) drive reliable rental pool.' },
+        { type: 'warn', text: 'HOA and higher taxes compress cash flow — strong appreciation play long-term.' }
+      ]
+    },
+    {
+      id: 22, lat: 41.7353, lng: -111.8290, addr: '445 E 200 N', city: 'Logan', state: 'UT', zip: '84321',
+      price: 325000, comp: 365000, sqft: 1750, lot: 0.17, beds: 4, baths: 2, year: 1982, type: 'Duplex',
+      rent: 2600, unitRent: 1300, taxes: 1400, insurance: 840, hoa: 0,
+      score: 91, grade: 'A', strategy: ['househack', 'cashflow'], status: 'Active',
+      cap: 8.2, coc: 12.1, dom: 8, discount: 11.0,
+      mapX: 50, mapY: 50, imgV: 2,
+      owner: 'Margaret Sorensen', ownerType: 'Individual', equity: 64,
+      tagline: 'House Hack · Logan · USU market, strong numbers',
+      insights: [
+        { type: 'pos', text: 'Unit B rents for $1,300/mo — covers 81% of your FHA mortgage after 3.5% down.' },
+        { type: 'pos', text: 'USU enrollment drives near-zero vacancy — strong renter demand year-round.' },
+        { type: 'pos', text: 'Top DealScore in the dataset — best combination of price, cash flow, and discount.' }
+      ]
     }
   ];
 
@@ -2119,7 +2241,7 @@
   }
 
   function initMap() {
-    map = L.map('map', { zoomControl: false, attributionControl: true }).setView([37.8, -96], 4);
+    map = L.map('map', { zoomControl: false, attributionControl: true }).setView([40.4, -111.9], 8);
     const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
     tileLayer = L.tileLayer(
       isDark
