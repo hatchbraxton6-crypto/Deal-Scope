@@ -837,6 +837,57 @@
   ::-webkit-scrollbar-thumb { background: var(--border-dark); border-radius: 4px; }
   ::-webkit-scrollbar-thumb:hover { background: var(--ink-4); }
 
+  /* ===== DROPDOWNS ===== */
+  .dropdown {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.14);
+    z-index: 100;
+    min-width: 220px;
+    padding: 14px 16px;
+  }
+  .dropdown h5 {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    color: var(--ink-3);
+    margin-bottom: 10px;
+    font-weight: 700;
+  }
+  .dd-2col { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .dd-2col label, .dropdown > label { font-size: 11px; color: var(--ink-3); display: block; margin-bottom: 3px; font-weight: 500; }
+  .dd-2col input, .dd-2col select {
+    width: 100%;
+    height: 30px;
+    padding: 0 8px;
+    border: 1px solid var(--border);
+    border-radius: 5px;
+    background: var(--surface);
+    font-size: 13px;
+    color: var(--ink);
+    outline: none;
+    font-family: inherit;
+  }
+  .dd-2col input:focus, .dd-2col select:focus { border-color: var(--primary); }
+  .dd-check {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 0;
+    font-size: 13px;
+    color: var(--ink-2);
+    cursor: pointer;
+    border-bottom: 1px solid var(--border);
+  }
+  .dd-check:last-of-type { border-bottom: none; }
+  .dd-check input[type=checkbox] { accent-color: var(--primary); width: 14px; height: 14px; cursor: pointer; }
+  .dd-footer { display: flex; gap: 8px; margin-top: 12px; padding-top: 10px; border-top: 1px solid var(--border); }
+  .dd-clear { flex: 1; height: 30px; background: var(--surface); border: 1px solid var(--border); border-radius: 5px; font-size: 12px; color: var(--ink-2); cursor: pointer; font-family: inherit; }
+  .dd-clear:hover { background: var(--surface-2); }
+  .dd-apply { flex: 2; height: 30px; background: var(--primary); border: none; border-radius: 5px; font-size: 12px; font-weight: 600; color: white; cursor: pointer; font-family: inherit; }
+  .dd-apply:hover { background: var(--primary-dark); }
+
   /* ===== RESPONSIVE ===== */
   @media (max-width: 900px) {
     .main { grid-template-columns: 1fr; }
@@ -874,17 +925,17 @@
 <div class="searchbar">
   <input type="text" class="search-box" id="search" placeholder="Search address, city, ZIP, or county..."/>
 
-  <button class="filter-btn active" data-filter-toggle>
-    Filters <span class="count">4</span>
+  <button class="filter-btn active" data-filter-toggle onclick="clearF('all')">
+    Filters <span class="count">0</span>
   </button>
 
-  <button class="filter-btn">Price <span class="chev">▾</span></button>
-  <button class="filter-btn">Beds/Baths <span class="chev">▾</span></button>
-  <button class="filter-btn">Cap Rate <span class="chev">▾</span></button>
-  <button class="filter-btn">Strategy <span class="chev">▾</span></button>
-  <button class="filter-btn">DealScore <span class="chev">▾</span></button>
-  <button class="filter-btn">Status <span class="chev">▾</span></button>
-  <button class="filter-btn">More <span class="chev">▾</span></button>
+  <button class="filter-btn" onclick="openDD(this,'price')">Price <span class="chev">▾</span></button>
+  <button class="filter-btn" onclick="openDD(this,'beds')">Beds/Baths <span class="chev">▾</span></button>
+  <button class="filter-btn" onclick="openDD(this,'cap')">Cap Rate <span class="chev">▾</span></button>
+  <button class="filter-btn" onclick="openDD(this,'strategy')">Strategy <span class="chev">▾</span></button>
+  <button class="filter-btn" onclick="openDD(this,'score')">DealScore <span class="chev">▾</span></button>
+  <button class="filter-btn" onclick="openDD(this,'status')">Status <span class="chev">▾</span></button>
+  <button class="filter-btn" onclick="openDD(this,'more')">More <span class="chev">▾</span></button>
 
   <div class="divider"></div>
 
@@ -959,7 +1010,7 @@
     <div class="drawer-actions">
       <button class="drawer-action">☆ Save</button>
       <button class="drawer-action">+ List</button>
-      <button class="drawer-action">⤓ Export</button>
+      <button class="drawer-action" onclick="exportCSV()">⤓ Export</button>
       <button class="drawer-action primary">Skip Trace</button>
     </div>
   </div>
@@ -1220,6 +1271,111 @@
   let selectedId = null;
   let sortBy = 'score';
   let searchQuery = '';
+  const filters = { priceMin: 0, priceMax: 0, bedsMin: 0, bathsMin: 0, capMin: 0, strategies: [], scoreMin: 0, statuses: [] };
+  let activeDDBtn = null;
+
+  // ===== DROPDOWN ENGINE =====
+  function ddEl() { return document.getElementById('filterDropdown'); }
+
+  function openDD(btn, type) {
+    if (activeDDBtn === btn) { closeDD(); return; }
+    activeDDBtn = btn;
+    const rect = btn.getBoundingClientRect();
+    const el = ddEl();
+    el.innerHTML = ddHtml(type);
+    el.style.left = rect.left + 'px';
+    el.style.top = (rect.bottom + 6) + 'px';
+    el.style.display = 'block';
+    btn.classList.add('active');
+  }
+
+  function closeDD() {
+    ddEl().style.display = 'none';
+    if (activeDDBtn) { activeDDBtn.classList.remove('active'); activeDDBtn = null; }
+    updateFilterChip();
+  }
+
+  function updateFilterChip() {
+    const count = (filters.priceMin || filters.priceMax ? 1 : 0)
+      + (filters.bedsMin ? 1 : 0) + (filters.bathsMin ? 1 : 0)
+      + (filters.capMin ? 1 : 0) + (filters.strategies.length ? 1 : 0)
+      + (filters.scoreMin ? 1 : 0) + (filters.statuses.length ? 1 : 0);
+    const pill = document.querySelector('[data-filter-toggle] .count');
+    if (pill) pill.textContent = count;
+    const btn = document.querySelector('[data-filter-toggle]');
+    if (btn) btn.classList.toggle('active', count > 0);
+  }
+
+  function ddHtml(type) {
+    const sel = (arr, val) => arr.map(([v,l]) => `<option value="${v}" ${filters[val]===v||filters[val]===Number(v)?'selected':''}>${l}</option>`).join('');
+    const chk = (key, items, labels) => items.map(s => `<label class="dd-check"><input type="checkbox" value="${s}" ${filters[key].includes(s)?'checked':''} onchange="toggleF('${key}',this)">${labels[s]||s}</label>`).join('');
+    const footer = (clearKey, applyFn) => `<div class="dd-footer"><button class="dd-clear" onclick="clearF('${clearKey}')">Clear</button><button class="dd-apply" onclick="${applyFn}">Apply</button></div>`;
+
+    if (type === 'price') return `<h5>Price Range</h5><div class="dd-2col"><div><label>Min</label><input type="number" id="f-pmin" placeholder="No min" value="${filters.priceMin||''}" step="25000" min="0"></div><div><label>Max</label><input type="number" id="f-pmax" placeholder="No max" value="${filters.priceMax||''}" step="25000" min="0"></div></div>${footer('price',"applyF('price')")}`;
+
+    if (type === 'beds') return `<h5>Beds / Baths</h5><div class="dd-2col"><div><label>Min Beds</label><select id="f-beds">${sel([[0,'Any'],[1,'1+'],[2,'2+'],[3,'3+'],[4,'4+']],'bedsMin')}</select></div><div><label>Min Baths</label><select id="f-baths">${sel([[0,'Any'],[1,'1+'],[2,'2+'],[3,'3+']],'bathsMin')}</select></div></div>${footer('beds',"applyF('beds')")}`;
+
+    if (type === 'cap') return `<h5>Min Cap Rate</h5><select id="f-cap" style="width:100%;height:30px;padding:0 8px;border:1px solid var(--border);border-radius:5px;font-size:13px;color:var(--ink);outline:none;font-family:inherit;">${sel([[0,'Any'],[4,'4%+'],[5,'5%+'],[6,'6%+'],[7,'7%+'],[8,'8%+'],[9,'9%+'],[10,'10%+'],[12,'12%+']],'capMin')}</select>${footer('cap',"applyF('cap')")}`;
+
+    if (type === 'strategy') return `<h5>Strategy</h5>${chk('strategies',['cashflow','brrrr','flip','undervalued'],{cashflow:'Cash Flow',brrrr:'BRRRR',flip:'Fix & Flip',undervalued:'Undervalued'})}${footer('strategy',"closeDD();renderList()")}`;
+
+    if (type === 'score') return `<h5>Min DealScore</h5><select id="f-score" style="width:100%;height:30px;padding:0 8px;border:1px solid var(--border);border-radius:5px;font-size:13px;color:var(--ink);outline:none;font-family:inherit;">${sel([[0,'Any'],[60,'60+'],[65,'65+'],[70,'70+'],[75,'75+'],[80,'80+'],[85,'85+'],[90,'90+']],'scoreMin')}</select>${footer('score',"applyF('score')")}`;
+
+    if (type === 'status') return `<h5>Status</h5>${chk('statuses',['Active','Price Cut'],{})}${footer('status',"closeDD();renderList()")}`;
+
+    if (type === 'more') return `<h5>More Filters</h5><div class="dd-2col"><div><label>Min Year Built</label><input type="number" id="f-ymin" placeholder="Any" value="${filters.yearMin||''}" step="5" min="1900" max="2025"></div><div><label>Max DOM</label><input type="number" id="f-dom" placeholder="Any" value="${filters.domMax||''}" step="10" min="0"></div></div>${footer('more',"applyF('more')")}`;
+
+    return '';
+  }
+
+  function applyF(type) {
+    if (type === 'price') {
+      filters.priceMin = parseInt(document.getElementById('f-pmin').value) || 0;
+      filters.priceMax = parseInt(document.getElementById('f-pmax').value) || 0;
+    } else if (type === 'beds') {
+      filters.bedsMin = parseInt(document.getElementById('f-beds').value) || 0;
+      filters.bathsMin = parseInt(document.getElementById('f-baths').value) || 0;
+    } else if (type === 'cap') {
+      filters.capMin = parseFloat(document.getElementById('f-cap').value) || 0;
+    } else if (type === 'score') {
+      filters.scoreMin = parseInt(document.getElementById('f-score').value) || 0;
+    } else if (type === 'more') {
+      filters.yearMin = parseInt(document.getElementById('f-ymin').value) || 0;
+      filters.domMax = parseInt(document.getElementById('f-dom').value) || 0;
+    }
+    closeDD();
+    renderList();
+  }
+
+  function clearF(type) {
+    if (type === 'price') { filters.priceMin = 0; filters.priceMax = 0; }
+    else if (type === 'beds') { filters.bedsMin = 0; filters.bathsMin = 0; }
+    else if (type === 'cap') { filters.capMin = 0; }
+    else if (type === 'strategy') { filters.strategies = []; }
+    else if (type === 'score') { filters.scoreMin = 0; }
+    else if (type === 'status') { filters.statuses = []; }
+    else if (type === 'more') { filters.yearMin = 0; filters.domMax = 0; }
+    else if (type === 'all') {
+      Object.assign(filters, { priceMin:0, priceMax:0, bedsMin:0, bathsMin:0, capMin:0, strategies:[], scoreMin:0, statuses:[], yearMin:0, domMax:0 });
+    }
+    closeDD();
+    renderList();
+  }
+
+  function toggleF(key, cb) {
+    if (cb.checked) { if (!filters[key].includes(cb.value)) filters[key].push(cb.value); }
+    else { filters[key] = filters[key].filter(s => s !== cb.value); }
+    renderList();
+  }
+
+  // ===== CSV EXPORT =====
+  function exportCSV() {
+    const headers = ['Address','City','State','ZIP','Price','Beds','Baths','Sqft','Year','Type','Rent/mo','Cap Rate','CoC%','DealScore','Grade','Status','DOM','Discount%','Owner','Owner Type','Equity%'];
+    const rows = properties.map(p => [p.addr,p.city,p.state,p.zip,p.price,p.beds,p.baths,p.sqft,p.year,p.type,p.rent,p.cap,p.coc,p.score,p.grade,p.status,p.dom,p.discount,p.owner,p.ownerType,p.equity]);
+    const csv = [headers,...rows].map(r => r.map(v => `"${String(v).replace(/"/g,'""')}"`).join(',')).join('\n');
+    const a = Object.assign(document.createElement('a'), { href: URL.createObjectURL(new Blob([csv],{type:'text/csv'})), download: 'dealscope-export.csv' });
+    a.click();
+  }
 
   // ===== RENDER LIST =====
   function renderList() {
@@ -1227,6 +1383,19 @@
     if (searchQuery) {
       sorted = sorted.filter(p => `${p.addr} ${p.city} ${p.state} ${p.zip}`.toLowerCase().includes(searchQuery));
     }
+    sorted = sorted.filter(p => {
+      if (filters.priceMin && p.price < filters.priceMin) return false;
+      if (filters.priceMax && p.price > filters.priceMax) return false;
+      if (filters.bedsMin && p.beds < filters.bedsMin) return false;
+      if (filters.bathsMin && p.baths < filters.bathsMin) return false;
+      if (filters.capMin && p.cap < filters.capMin) return false;
+      if (filters.strategies.length && !p.strategy.some(s => filters.strategies.includes(s))) return false;
+      if (filters.scoreMin && p.score < filters.scoreMin) return false;
+      if (filters.statuses.length && !filters.statuses.includes(p.status)) return false;
+      if (filters.yearMin && p.year < filters.yearMin) return false;
+      if (filters.domMax && p.dom > filters.domMax) return false;
+      return true;
+    });
     sorted.sort((a, b) => {
       switch (sortBy) {
         case 'price-asc': return a.price - b.price;
@@ -1239,6 +1408,7 @@
     });
 
     document.getElementById('resultCount').textContent = sorted.length;
+    updateFilterChip();
 
     document.getElementById('resultsList').innerHTML = sorted.map(p => `
       <div class="row ${selectedId === p.id ? 'selected' : ''}" data-id="${p.id}">
@@ -1454,10 +1624,18 @@
     renderList();
   });
 
+  document.addEventListener('click', (e) => {
+    const el = ddEl();
+    if (el.style.display !== 'none' && !el.contains(e.target) && e.target !== activeDDBtn && !e.target.closest('[onclick*="openDD"]')) {
+      closeDD();
+    }
+  });
+
   // ===== INIT =====
   renderList();
   renderMap();
 </script>
 
+<div id="filterDropdown" class="dropdown" style="display:none;position:fixed;"></div>
 </body>
 </html>
