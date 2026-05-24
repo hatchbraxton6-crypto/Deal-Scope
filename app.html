@@ -526,7 +526,7 @@
     border-left: 1px solid var(--border);
     box-shadow: -8px 0 32px rgba(0,0,0,0.12);
     transition: right 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
-    z-index: 50;
+    z-index: 1000;
     overflow-y: auto;
   }
   .drawer.open { right: 0; }
@@ -2199,6 +2199,10 @@
   function openDrawer() {
     const p = properties.find(x => x.id === selectedId);
     if (!p) return;
+    // On mobile map view, switch to list so drawer isn't behind the map
+    if (window.innerWidth <= 900 && document.querySelector('.map-panel.mob-active')) {
+      setMobView('list');
+    }
     if (document.documentElement.getAttribute('data-mode') === 'guided') {
       document.getElementById('drawerContent').innerHTML = guidedDrawer(p);
       document.getElementById('drawer').classList.add('open');
