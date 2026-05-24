@@ -806,6 +806,94 @@
   ::-webkit-scrollbar-thumb { background: var(--border-dark); border-radius: 4px; }
   ::-webkit-scrollbar-thumb:hover { background: var(--ink-4); }
 
+  /* ===== GUIDED MODE ===== */
+  .mode-modal-overlay {
+    position: fixed; inset: 0; background: rgba(0,0,0,0.6);
+    z-index: 200; display: flex; align-items: center; justify-content: center;
+    backdrop-filter: blur(4px);
+  }
+  .mode-modal {
+    background: var(--surface); border-radius: 16px; padding: 40px 36px;
+    max-width: 520px; width: 90%; text-align: center;
+    box-shadow: 0 24px 60px rgba(0,0,0,0.2);
+  }
+  .mode-modal .mm-logo {
+    width: 48px; height: 48px; background: var(--primary); border-radius: 12px;
+    display: grid; place-items: center; color: white; font-weight: 800; font-size: 22px;
+    margin: 0 auto 20px;
+  }
+  .mode-modal h2 { font-size: 22px; font-weight: 800; margin-bottom: 8px; }
+  .mode-modal > p { font-size: 14px; color: var(--ink-3); margin-bottom: 28px; }
+  .mode-cards { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .mode-card {
+    border: 2px solid var(--border); border-radius: 12px; padding: 20px 16px;
+    cursor: pointer; transition: all 0.15s; text-align: left;
+  }
+  .mode-card:hover { border-color: var(--primary); background: var(--primary-soft); }
+  .mode-card .mc-icon { font-size: 28px; margin-bottom: 10px; }
+  .mode-card h3 { font-size: 15px; font-weight: 700; margin-bottom: 6px; }
+  .mode-card p { font-size: 12px; color: var(--ink-3); line-height: 1.5; }
+
+  .guided-bar {
+    display: none; padding: 8px 20px; background: var(--primary-soft);
+    border-bottom: 1px solid var(--primary); font-size: 12px; color: var(--primary);
+    font-weight: 600; align-items: center; gap: 10px;
+  }
+  [data-mode="guided"] .guided-bar { display: flex; }
+  [data-mode="guided"] .guided-only { display: block !important; }
+  .guided-only { display: none; }
+
+  /* Tooltips */
+  [data-tip] { position: relative; }
+  [data-tip]::after {
+    content: attr(data-tip);
+    position: absolute; bottom: calc(100% + 8px); left: 50%;
+    transform: translateX(-50%);
+    background: var(--ink); color: white;
+    padding: 7px 11px; border-radius: 7px;
+    font-size: 11px; line-height: 1.5; font-weight: 400;
+    white-space: normal; width: 200px; text-align: center;
+    opacity: 0; pointer-events: none; transition: opacity 0.15s;
+    z-index: 300; box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+  }
+  [data-tip]::before {
+    content: ''; position: absolute; bottom: calc(100% + 2px); left: 50%;
+    transform: translateX(-50%);
+    border: 5px solid transparent; border-top-color: var(--ink);
+    opacity: 0; transition: opacity 0.15s; z-index: 300;
+  }
+  [data-tip]:hover::after, [data-tip]:hover::before { opacity: 1; }
+  [data-mode="pro"] [data-tip]::after,
+  [data-mode="pro"] [data-tip]::before { display: none; }
+
+  /* Verdict badge */
+  .verdict {
+    display: none; margin-top: 8px; padding: 6px 10px;
+    border-radius: 6px; font-size: 11px; font-weight: 600; line-height: 1.4;
+  }
+  [data-mode="guided"] .verdict { display: block; }
+  .verdict.great { background: var(--pos-soft); color: var(--pos); }
+  .verdict.good { background: var(--warn-soft); color: var(--warn); }
+  .verdict.fair { background: var(--neg-soft); color: var(--neg); }
+
+  /* ===== LEARN TAB ===== */
+  .learn-grid {
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 16px; margin-top: 24px;
+  }
+  .learn-card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 10px; padding: 20px;
+  }
+  .learn-card h3 { font-size: 14px; font-weight: 700; margin-bottom: 6px; display: flex; align-items: center; gap: 8px; }
+  .learn-card .term-tag {
+    font-size: 10px; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 0.05em; padding: 2px 7px; border-radius: 4px;
+    background: var(--primary-soft); color: var(--primary);
+  }
+  .learn-card p { font-size: 13px; color: var(--ink-3); line-height: 1.6; }
+  .learn-card .example { margin-top: 10px; padding: 8px 10px; background: var(--bg); border-radius: 6px; font-size: 12px; color: var(--ink-2); }
+
   /* ===== DARK MODE ===== */
   [data-theme="dark"] {
     --bg: #0f172a;
@@ -951,16 +1039,23 @@
     <button class="nav-tab active" onclick="setTab('properties',this)">Properties</button>
     <button class="nav-tab" onclick="setTab('compare',this)">Compare</button>
     <button class="nav-tab" onclick="setTab('brrrr',this)">BRRRR</button>
+    <button class="nav-tab" onclick="setTab('learn',this)">📖 Learn</button>
     <button class="nav-tab" onclick="setTab('markets',this)">Markets</button>
-    <button class="nav-tab" onclick="setTab('reports',this)">Reports</button>
   </nav>
   <div class="topbar-right">
     <div class="credits">Credits: <strong>847</strong> / 1,000</div>
     <button class="filter-btn">Upgrade</button>
     <button class="map-btn" id="themeToggle" onclick="toggleTheme()" title="Toggle dark mode" style="font-size:15px;">☾</button>
+    <button class="filter-btn" id="modeBtn" onclick="toggleMode()" title="Switch investor mode" style="gap:6px;">🌱 Guided</button>
     <div class="avatar">BJ</div>
   </div>
 </header>
+
+<!-- GUIDED MODE BAR -->
+<div class="guided-bar">
+  🌱 <span>Guided Mode is on — hover over any metric to learn what it means.</span>
+  <button onclick="setMode('pro')" style="margin-left:auto;background:var(--primary);color:white;border:none;border-radius:5px;padding:3px 10px;font-size:11px;font-weight:600;cursor:pointer;font-family:inherit;">Switch to Pro →</button>
+</div>
 
 <!-- SEARCH BAR -->
 <div class="searchbar">
@@ -1042,6 +1137,149 @@
   </section>
 
 </main>
+
+<!-- MODE MODAL -->
+<div class="mode-modal-overlay" id="modeModal">
+  <div class="mode-modal">
+    <div class="mm-logo">D</div>
+    <h2>Welcome to DealScope</h2>
+    <p>How would you describe your real estate investing experience?</p>
+    <div class="mode-cards">
+      <div class="mode-card" onclick="setMode('guided')">
+        <div class="mc-icon">🌱</div>
+        <h3>New Investor</h3>
+        <p>I'm learning the ropes. I want explanations and guidance as I explore deals.</p>
+      </div>
+      <div class="mode-card" onclick="setMode('pro')">
+        <div class="mc-icon">⚡</div>
+        <h3>Experienced</h3>
+        <p>I know my numbers. Show me the full data — no hand-holding needed.</p>
+      </div>
+    </div>
+    <p style="font-size:12px;color:var(--ink-4);margin-top:20px;">You can switch modes anytime using the button in the top bar.</p>
+  </div>
+</div>
+
+<!-- LEARN PANEL -->
+<div id="learnPanel" style="display:none;height:calc(100vh - 108px);overflow-y:auto;background:var(--bg);padding:24px;">
+  <div style="max-width:1000px;margin:0 auto;">
+    <div style="margin-bottom:8px;">
+      <h2 style="font-size:22px;font-weight:800;letter-spacing:-0.01em;">Investor Glossary</h2>
+      <p style="font-size:13px;color:var(--ink-3);margin-top:4px;">Everything you need to know to analyze a deal like a pro.</p>
+    </div>
+
+    <div style="display:flex;gap:8px;margin:16px 0;flex-wrap:wrap;">
+      <span style="padding:5px 12px;background:var(--primary-soft);color:var(--primary);border-radius:20px;font-size:12px;font-weight:600;">📊 Metrics</span>
+      <span style="padding:5px 12px;background:var(--pos-soft);color:var(--pos);border-radius:20px;font-size:12px;font-weight:600;">🏗️ Strategies</span>
+      <span style="padding:5px 12px;background:var(--warn-soft);color:var(--warn);border-radius:20px;font-size:12px;font-weight:600;">💰 Financing</span>
+    </div>
+
+    <div class="learn-grid">
+      <div class="learn-card">
+        <h3><span class="term-tag">Metric</span> Cap Rate</h3>
+        <p>Capitalization Rate. The annual return on a property based on its price — assuming you paid cash with no mortgage.</p>
+        <div class="example">📐 <strong>Formula:</strong> (Annual Net Income ÷ Purchase Price) × 100<br/>✅ 6%+ is decent. 8%+ is strong. 10%+ is excellent.</div>
+      </div>
+      <div class="learn-card">
+        <h3><span class="term-tag">Metric</span> Cash-on-Cash Return (CoC)</h3>
+        <p>How much cash you actually earn per year relative to the cash you put in — including your mortgage payment.</p>
+        <div class="example">📐 <strong>Formula:</strong> (Annual Cash Flow ÷ Total Cash Invested) × 100<br/>✅ 8%+ is solid. 12%+ is great.</div>
+      </div>
+      <div class="learn-card">
+        <h3><span class="term-tag">Metric</span> DealScore™</h3>
+        <p>DealScope's proprietary score from 0–100 that ranks a property based on 6 factors: undervaluation, cash flow, CoC, value-add upside, market momentum, and condition.</p>
+        <div class="example">🏆 85+ = Grade A (top deals)<br/>70–84 = Grade B (solid)<br/>55–69 = Grade C (fair)</div>
+      </div>
+      <div class="learn-card">
+        <h3><span class="term-tag">Metric</span> Cash Flow</h3>
+        <p>The money left over each month after collecting rent and paying all expenses: mortgage, taxes, insurance, repairs, and vacancy.</p>
+        <div class="example">📐 Rent − Mortgage − Taxes − Insurance − CapEx = Cash Flow<br/>✅ Positive = money in your pocket every month.</div>
+      </div>
+      <div class="learn-card">
+        <h3><span class="term-tag">Metric</span> ARV (After Repair Value)</h3>
+        <p>What a property will be worth AFTER you fix it up. This drives your BRRRR refinance and flip profit calculations.</p>
+        <div class="example">🏠 Example: Buy for $120k, spend $30k on rehab → ARV $180k = $30k in equity created.</div>
+      </div>
+      <div class="learn-card">
+        <h3><span class="term-tag">Metric</span> DOM (Days on Market)</h3>
+        <p>How long the property has been listed. High DOM often means the seller is more motivated and open to lower offers.</p>
+        <div class="example">📅 Under 30 days = competitive. 60+ days = negotiating power. 90+ = seller likely desperate.</div>
+      </div>
+      <div class="learn-card">
+        <h3><span class="term-tag">Metric</span>% Below Comp</h3>
+        <p>How much below the neighborhood's comparable sold prices (comps) this property is listed. Higher = more undervalued.</p>
+        <div class="example">✅ 5%+ below comps is worth a look. 10%+ is a serious discount. 15%+ is rare and valuable.</div>
+      </div>
+      <div class="learn-card">
+        <h3><span class="term-tag">Metric</span> Equity</h3>
+        <p>The difference between what a property is worth and what's owed on it. High equity owners are more likely to sell at a discount.</p>
+        <div class="example">🏠 Home worth $300k, mortgage $100k = $200k equity (67%).<br/>High equity = motivated seller potential.</div>
+      </div>
+      <div class="learn-card">
+        <h3><span class="term-tag">Strategy</span> BRRRR</h3>
+        <p><strong>Buy · Rehab · Rent · Refinance · Repeat.</strong> Buy a distressed property, fix it up, rent it out, then refinance to pull your cash back out — and repeat.</p>
+        <div class="example">🔄 The goal: get most or all of your cash back at refi so you can buy the next property. Use the BRRRR tab to model it.</div>
+      </div>
+      <div class="learn-card">
+        <h3><span class="term-tag">Strategy</span> Cash Flow</h3>
+        <p>Buy and hold properties that generate positive monthly income after all expenses. The goal is passive monthly income.</p>
+        <div class="example">💰 Best for: building long-term wealth and monthly income.<br/>Look for: cap rate 6%+, CoC 8%+.</div>
+      </div>
+      <div class="learn-card">
+        <h3><span class="term-tag">Strategy</span> Fix & Flip</h3>
+        <p>Buy a distressed property, renovate it, and sell it at a profit — usually within 6–12 months.</p>
+        <div class="example">📐 MAO (Max Allowable Offer) = ARV × 70% − Rehab Costs<br/>Example: $200k ARV × 70% − $30k rehab = $110k max offer.</div>
+      </div>
+      <div class="learn-card">
+        <h3><span class="term-tag">Financing</span> LTV (Loan-to-Value)</h3>
+        <p>The percentage of a property's value that a lender will loan you. Most conventional lenders go up to 80% LTV on investment properties.</p>
+        <div class="example">🏦 80% LTV on $200k = $160k loan. You bring $40k down.<br/>BRRRR refi typically 75% LTV on ARV.</div>
+      </div>
+      <div class="learn-card">
+        <h3><span class="term-tag">Financing</span> Hard Money Loan</h3>
+        <p>A short-term, high-interest loan from a private lender — used to buy and rehab properties quickly when banks won't lend.</p>
+        <div class="example">⚡ Typical: 10–14% interest, 6–18 month term, quick approval.<br/>Common for flips and BRRRR acquisitions.</div>
+      </div>
+      <div class="learn-card">
+        <h3><span class="term-tag">Financing</span> CapEx</h3>
+        <p>Capital Expenditures — money set aside each month for big future expenses like roof replacement, HVAC, plumbing, etc.</p>
+        <div class="example">💡 Rule of thumb: budget 5–10% of monthly rent for CapEx.<br/>$1,500/mo rent → budget $75–$150/mo for CapEx.</div>
+      </div>
+      <div class="learn-card">
+        <h3><span class="term-tag">Strategy</span> Skip Trace</h3>
+        <p>The process of finding contact information (phone, email) for a property owner so you can reach out about buying their property directly — before it hits the market.</p>
+        <div class="example">📞 Used by wholesalers and investors to find off-market deals.<br/>Available on DealScope Pro.</div>
+      </div>
+      <div class="learn-card">
+        <h3><span class="term-tag">Metric</span> NOI (Net Operating Income)</h3>
+        <p>Annual rental income minus all operating expenses (taxes, insurance, maintenance, management) — but before mortgage payments.</p>
+        <div class="example">📐 NOI = Gross Rent − Vacancy − Operating Expenses<br/>Cap Rate = NOI ÷ Purchase Price</div>
+      </div>
+    </div>
+
+    <div style="margin-top:40px;background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:28px;">
+      <h3 style="font-size:17px;font-weight:800;margin-bottom:16px;">🎯 How to Analyze Your First Deal</h3>
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:16px;">
+        <div style="padding:14px;background:var(--bg);border-radius:8px;">
+          <div style="font-weight:700;font-size:13px;margin-bottom:6px;color:var(--primary);">Step 1 — Filter for deals</div>
+          <div style="font-size:12px;color:var(--ink-3);line-height:1.5;">Set Cap Rate to 6%+, DealScore to 75+. This gives you only the top properties worth looking at.</div>
+        </div>
+        <div style="padding:14px;background:var(--bg);border-radius:8px;">
+          <div style="font-weight:700;font-size:13px;margin-bottom:6px;color:var(--primary);">Step 2 — Check the numbers</div>
+          <div style="font-size:12px;color:var(--ink-3);line-height:1.5;">Open a property and review the Investment Analysis section. Is cash flow positive? Is CoC above 8%?</div>
+        </div>
+        <div style="padding:14px;background:var(--bg);border-radius:8px;">
+          <div style="font-weight:700;font-size:13px;margin-bottom:6px;color:var(--primary);">Step 3 — Compare top picks</div>
+          <div style="font-size:12px;color:var(--ink-3);line-height:1.5;">Add your top 2–3 to the Compare tab and look at them side by side before deciding.</div>
+        </div>
+        <div style="padding:14px;background:var(--bg);border-radius:8px;">
+          <div style="font-weight:700;font-size:13px;margin-bottom:6px;color:var(--primary);">Step 4 — Run the BRRRR</div>
+          <div style="font-size:12px;color:var(--ink-3);line-height:1.5;">If it needs work, plug the numbers into the BRRRR tab to see how much cash you'd get back at refinance.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
 
 <!-- BRRRR PANEL -->
 <div id="brrrrPanel" style="display:none;height:calc(100vh - 108px);overflow-y:auto;background:var(--bg);padding:24px;">
@@ -1545,12 +1783,17 @@
             <strong>${p.beds}</strong> bd<span class="dot">·</span><strong>${p.baths}</strong> ba<span class="dot">·</span><strong>${p.sqft.toLocaleString()}</strong> sqft<span class="dot">·</span>Built <strong>${p.year}</strong><span class="dot">·</span>${p.type}
           </div>
           <div class="row-metrics">
-            <span class="pill pos"><span class="label">−</span>${p.discount}% comp</span>
-            <span class="pill ${p.cap >= 8 ? 'pos' : p.cap >= 6 ? '' : 'warn'}"><span class="label">Cap</span>${p.cap}%</span>
-            <span class="pill ${p.coc >= 10 ? 'pos' : ''}"><span class="label">CoC</span>${p.coc}%</span>
-            <span class="pill"><span class="label">Rent</span>${fmt$k(p.rent)}</span>
-            <span class="pill"><span class="label">DOM</span>${p.dom}</span>
-            ${p.status === 'Price Cut' ? '<span class="pill warn">Price Cut</span>' : ''}
+            <span class="pill pos" data-tip="This property is ${p.discount}% below what similar homes sold for nearby. Higher = better deal."><span class="label">−</span>${p.discount}% comp</span>
+            <span class="pill ${p.cap >= 8 ? 'pos' : p.cap >= 6 ? '' : 'warn'}" data-tip="Cap Rate: annual return based on purchase price (before mortgage). 6%+ = decent, 8%+ = strong."><span class="label">Cap</span>${p.cap}%</span>
+            <span class="pill ${p.coc >= 10 ? 'pos' : ''}" data-tip="Cash-on-Cash: actual yearly return on the cash you invest, including mortgage. 8%+ is solid."><span class="label">CoC</span>${p.coc}%</span>
+            <span class="pill" data-tip="Estimated monthly rent based on local comparables."><span class="label">Rent</span>${fmt$k(p.rent)}</span>
+            <span class="pill" data-tip="Days on Market. Higher DOM = seller may be more motivated to negotiate."><span class="label">DOM</span>${p.dom}</span>
+            ${p.status === 'Price Cut' ? '<span class="pill warn" data-tip="The seller has already reduced the price — a sign of motivation.">Price Cut</span>' : ''}
+          </div>
+          <div class="verdict ${p.score >= 85 ? 'great' : p.score >= 70 ? 'good' : 'fair'}">
+            ${p.score >= 85 ? `✅ Strong deal — top ${Math.round((100-p.score)/15*10)}% of listings. Great cash flow and below market price.`
+              : p.score >= 70 ? `🟡 Solid deal — worth a closer look. Run the numbers and check the BRRRR tab if it needs work.`
+              : `⚠️ Fair deal — lower score means higher risk. Review the insights carefully before making an offer.`}
           </div>
         </div>
       </div>
@@ -1776,15 +2019,30 @@
     }
   });
 
+  // ===== MODE =====
+  function setMode(mode) {
+    document.documentElement.setAttribute('data-mode', mode);
+    localStorage.setItem('ds-mode', mode);
+    document.getElementById('modeModal').style.display = 'none';
+    const btn = document.getElementById('modeBtn');
+    btn.textContent = mode === 'guided' ? '🌱 Guided' : '⚡ Pro';
+    renderList();
+  }
+
+  function toggleMode() {
+    const current = document.documentElement.getAttribute('data-mode') || 'pro';
+    setMode(current === 'guided' ? 'pro' : 'guided');
+  }
+
   // ===== TAB NAVIGATION =====
   function setTab(tab, btn) {
     document.querySelectorAll('.nav-tab').forEach(b => b.classList.remove('active'));
     btn.classList.add('active');
-    const panels = { properties: document.querySelector('.main'), brrrr: document.getElementById('brrrrPanel'), compare: document.getElementById('comparePanel') };
     document.querySelector('.searchbar').style.display = tab === 'properties' ? '' : 'none';
     document.querySelector('.main').style.display = tab === 'properties' ? '' : 'none';
     document.getElementById('brrrrPanel').style.display = tab === 'brrrr' ? '' : 'none';
     document.getElementById('comparePanel').style.display = tab === 'compare' ? '' : 'none';
+    document.getElementById('learnPanel').style.display = tab === 'learn' ? '' : 'none';
     if (tab === 'compare') renderCompare();
     if (tab === 'brrrr') calcBRRRR();
   }
@@ -1944,6 +2202,17 @@
   const savedTheme = localStorage.getItem('ds-theme') || 'light';
   document.documentElement.setAttribute('data-theme', savedTheme);
   document.getElementById('themeToggle').textContent = savedTheme === 'dark' ? '☀' : '☾';
+
+  const savedMode = localStorage.getItem('ds-mode');
+  if (savedMode) {
+    document.documentElement.setAttribute('data-mode', savedMode);
+    document.getElementById('modeModal').style.display = 'none';
+    document.getElementById('modeBtn').textContent = savedMode === 'guided' ? '🌱 Guided' : '⚡ Pro';
+  } else {
+    document.documentElement.setAttribute('data-mode', 'pro');
+    document.getElementById('modeModal').style.display = 'flex';
+  }
+
   initMap();
   renderList();
   renderMap();
