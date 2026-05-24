@@ -125,7 +125,77 @@
     place-items: center;
     font-weight: 600;
     font-size: 12px;
+    cursor: pointer;
+    flex-shrink: 0;
+    transition: opacity 0.15s;
   }
+  .avatar:hover { opacity: 0.85; }
+
+  /* Account panel */
+  .account-panel {
+    display: none;
+    position: fixed;
+    top: 64px;
+    right: 16px;
+    width: 300px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    box-shadow: 0 12px 40px rgba(0,0,0,0.15);
+    z-index: 500;
+    overflow: hidden;
+  }
+  .account-panel.open { display: block; }
+  .ap-user {
+    padding: 20px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+  .ap-avatar {
+    width: 44px; height: 44px; border-radius: 50%;
+    background: linear-gradient(135deg, #1e5fd9, #9333ea);
+    color: white; display: grid; place-items: center;
+    font-weight: 700; font-size: 16px; flex-shrink: 0;
+  }
+  .ap-name { font-weight: 700; font-size: 14px; }
+  .ap-email { font-size: 12px; color: var(--ink-3); margin-top: 2px; }
+  .ap-plan { display: inline-flex; align-items: center; gap: 4px; margin-top: 6px; padding: 2px 8px; border-radius: 20px; font-size: 11px; font-weight: 600; background: var(--primary-soft); color: var(--primary); }
+  .ap-section { padding: 8px 0; border-bottom: 1px solid var(--border); }
+  .ap-section:last-child { border-bottom: none; }
+  .ap-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: var(--ink-4); padding: 6px 20px 2px; }
+  .ap-row {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 10px 20px; font-size: 13px; color: var(--ink-2); cursor: pointer;
+    transition: background 0.12s;
+  }
+  .ap-row:hover { background: var(--bg); }
+  .ap-row .ap-row-left { display: flex; align-items: center; gap: 10px; }
+  .ap-row .ap-icon { font-size: 15px; width: 20px; text-align: center; }
+  .ap-toggle {
+    width: 36px; height: 20px; border-radius: 10px; background: var(--border);
+    position: relative; transition: background 0.2s; flex-shrink: 0;
+  }
+  .ap-toggle.on { background: var(--primary); }
+  .ap-toggle::after {
+    content: ''; position: absolute; top: 2px; left: 2px;
+    width: 16px; height: 16px; border-radius: 50%; background: white;
+    transition: left 0.2s; box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+  }
+  .ap-toggle.on::after { left: 18px; }
+  .ap-credits { padding: 14px 20px; border-bottom: 1px solid var(--border); }
+  .ap-credits-label { font-size: 11px; color: var(--ink-3); margin-bottom: 6px; }
+  .ap-credits-bar { height: 6px; background: var(--border); border-radius: 3px; overflow: hidden; margin-bottom: 6px; }
+  .ap-credits-fill { height: 100%; background: var(--primary); border-radius: 3px; width: 84.7%; }
+  .ap-credits-nums { font-size: 11px; color: var(--ink-3); display: flex; justify-content: space-between; }
+  .ap-upgrade {
+    margin: 12px 20px; padding: 10px; border: none; border-radius: 8px;
+    background: var(--primary); color: white; font-size: 13px; font-weight: 700;
+    cursor: pointer; font-family: inherit; width: calc(100% - 40px); transition: background 0.15s;
+  }
+  .ap-upgrade:hover { background: var(--primary-dark); }
+  .ap-signout { color: var(--neg) !important; }
 
   /* ===== SEARCH BAR ===== */
   .searchbar {
@@ -1110,9 +1180,53 @@
     <button class="filter-btn mob-hide">Upgrade</button>
     <button class="map-btn" id="themeToggle" onclick="toggleTheme()" title="Toggle dark mode" style="font-size:15px;">☾</button>
     <button class="filter-btn" id="modeBtn" onclick="toggleMode()" title="Switch investor mode" style="gap:6px;">🌱 Guided</button>
-    <div class="avatar">BJ</div>
+    <div class="avatar" onclick="toggleAccount()" id="avatarBtn">BH</div>
   </div>
 </header>
+
+<!-- ACCOUNT PANEL -->
+<div class="account-panel" id="accountPanel">
+  <div class="ap-user">
+    <div class="ap-avatar">BH</div>
+    <div>
+      <div class="ap-name">Braxton Hatch</div>
+      <div class="ap-email">hatchbraxton6@gmail.com</div>
+      <span class="ap-plan">🌱 Starter Plan</span>
+    </div>
+  </div>
+
+  <div class="ap-credits">
+    <div class="ap-credits-label">Credits used this month</div>
+    <div class="ap-credits-bar"><div class="ap-credits-fill"></div></div>
+    <div class="ap-credits-nums"><span>847 used</span><span>1,000 limit</span></div>
+  </div>
+  <div style="padding:0 20px 14px;">
+    <button class="ap-upgrade" onclick="closeAccount()">Upgrade to Pro — $49/mo →</button>
+  </div>
+
+  <div class="ap-section">
+    <div class="ap-label">Settings</div>
+    <div class="ap-row" onclick="toggleTheme();updateAccountToggles()">
+      <div class="ap-row-left"><span class="ap-icon">🌙</span>Dark mode</div>
+      <div class="ap-toggle" id="apThemeToggle"></div>
+    </div>
+    <div class="ap-row" onclick="toggleMode();closeAccount()">
+      <div class="ap-row-left"><span class="ap-icon">⚡</span>Investor mode</div>
+      <span id="apModeLabel" style="font-size:12px;color:var(--ink-3);font-weight:600;"></span>
+    </div>
+  </div>
+
+  <div class="ap-section">
+    <div class="ap-label">Account</div>
+    <div class="ap-row"><div class="ap-row-left"><span class="ap-icon">✏️</span>Edit profile</div></div>
+    <div class="ap-row"><div class="ap-row-left"><span class="ap-icon">🔔</span>Notifications</div></div>
+    <div class="ap-row"><div class="ap-row-left"><span class="ap-icon">❓</span>Help &amp; support</div></div>
+  </div>
+
+  <div class="ap-section">
+    <div class="ap-row ap-signout"><div class="ap-row-left"><span class="ap-icon">→</span>Sign out</div></div>
+  </div>
+</div>
 
 <!-- GUIDED MODE BAR -->
 <div class="guided-bar">
@@ -1953,6 +2067,35 @@
       });
     });
   }
+
+  // ===== ACCOUNT PANEL =====
+  function toggleAccount() {
+    const panel = document.getElementById('accountPanel');
+    panel.classList.toggle('open');
+    if (panel.classList.contains('open')) updateAccountToggles();
+  }
+
+  function closeAccount() {
+    document.getElementById('accountPanel').classList.remove('open');
+  }
+
+  function updateAccountToggles() {
+    const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+    const toggle = document.getElementById('apThemeToggle');
+    if (toggle) toggle.classList.toggle('on', isDark);
+    const modeEl = document.getElementById('apModeLabel');
+    const mode = document.documentElement.getAttribute('data-mode') || 'pro';
+    if (modeEl) modeEl.textContent = mode === 'guided' ? '🌱 Guided' : '⚡ Pro';
+  }
+
+  document.addEventListener('click', e => {
+    const panel = document.getElementById('accountPanel');
+    if (panel && panel.classList.contains('open') &&
+        !panel.contains(e.target) &&
+        !document.getElementById('avatarBtn').contains(e.target)) {
+      closeAccount();
+    }
+  });
 
   // ===== MAP =====
   let map = null;
