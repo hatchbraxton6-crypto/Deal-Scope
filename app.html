@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="light">
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
@@ -806,6 +806,72 @@
   ::-webkit-scrollbar-thumb { background: var(--border-dark); border-radius: 4px; }
   ::-webkit-scrollbar-thumb:hover { background: var(--ink-4); }
 
+  /* ===== DARK MODE ===== */
+  [data-theme="dark"] {
+    --bg: #0f172a;
+    --surface: #1e293b;
+    --surface-2: #263248;
+    --border: #334155;
+    --border-dark: #475569;
+    --ink: #f1f5f9;
+    --ink-2: #cbd5e1;
+    --ink-3: #94a3b8;
+    --ink-4: #64748b;
+    --primary-soft: #1e3564;
+  }
+  [data-theme="dark"] .sort-select,
+  [data-theme="dark"] .search-box { color-scheme: dark; }
+
+  /* ===== GRID VIEW ===== */
+  .results-list.grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    padding: 10px;
+    gap: 10px;
+    align-content: start;
+  }
+  .results-list.grid .row {
+    flex-direction: column;
+    gap: 0;
+    padding: 0;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    overflow: hidden;
+  }
+  .results-list.grid .row.selected { padding-left: 0; border-left: 3px solid var(--primary); }
+  .results-list.grid .row-thumb { flex: none; width: 100%; aspect-ratio: 16/9; border-radius: 0; border: none; border-bottom: 1px solid var(--border); }
+  .results-list.grid .row-body { padding: 10px 12px; }
+  .results-list.grid .row-metrics { gap: 4px; }
+
+  /* ===== MOBILE TABS ===== */
+  .mobile-tabs {
+    display: none;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 50px;
+    background: var(--surface);
+    border-top: 1px solid var(--border);
+    z-index: 45;
+  }
+  .mobile-tab {
+    flex: 1;
+    border: none;
+    background: transparent;
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--ink-3);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    transition: color 0.15s;
+  }
+  .mobile-tab.active { color: var(--primary); border-top: 2px solid var(--primary); }
+
   /* ===== DROPDOWNS ===== */
   .dropdown {
     background: var(--surface);
@@ -860,11 +926,16 @@
   /* ===== RESPONSIVE ===== */
   @media (max-width: 900px) {
     .main { grid-template-columns: 1fr; }
-    .map-panel { display: none; }
+    .map-panel { display: none; height: calc(100vh - 108px - 50px); }
+    .map-panel.mob-active { display: block; }
+    .results-panel { height: calc(100vh - 108px - 50px); }
+    .results-panel.mob-hidden { display: none; }
     .nav-tabs { display: none; }
     .drawer { width: 100%; right: -100%; }
     .drawer.open { right: 0; }
     .search-box { flex: 1; }
+    .mobile-tabs { display: flex; }
+    html, body { overflow: hidden; }
   }
 </style>
 </head>
@@ -886,6 +957,7 @@
   <div class="topbar-right">
     <div class="credits">Credits: <strong>847</strong> / 1,000</div>
     <button class="filter-btn">Upgrade</button>
+    <button class="map-btn" id="themeToggle" onclick="toggleTheme()" title="Toggle dark mode" style="font-size:15px;">☾</button>
     <div class="avatar">BJ</div>
   </div>
 </header>
@@ -1420,14 +1492,19 @@
 
   // ===== MAP =====
   let map = null;
+  let tileLayer = null;
   const leafletMarkers = {};
   const gradeColors = { A: '#16a34a', B: '#2563eb', C: '#d97706', D: '#6b7280' };
 
   function initMap() {
     map = L.map('map', { zoomControl: false, attributionControl: true }).setView([37.8, -96], 4);
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-    }).addTo(map);
+    const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+    tileLayer = L.tileLayer(
+      isDark
+        ? 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png'
+        : 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+      { attribution: isDark ? '© <a href="https://carto.com/">CARTO</a>' : '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>' }
+    ).addTo(map);
   }
 
   function makeIcon(p) {
@@ -1623,12 +1700,52 @@
     }
   });
 
+  // ===== DARK MODE =====
+  function toggleTheme() {
+    const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+    const next = isDark ? 'light' : 'dark';
+    document.documentElement.setAttribute('data-theme', next);
+    document.getElementById('themeToggle').textContent = next === 'dark' ? '☀' : '☾';
+    localStorage.setItem('ds-theme', next);
+    if (map && tileLayer) {
+      tileLayer.remove();
+      tileLayer = next === 'dark'
+        ? L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', { attribution: '© <a href="https://carto.com/">CARTO</a>' }).addTo(map)
+        : L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>' }).addTo(map);
+    }
+  }
+
+  // ===== GRID VIEW =====
+  document.querySelectorAll('.view-toggle button').forEach((btn, i) => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.view-toggle button').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      document.getElementById('resultsList').classList.toggle('grid', i === 1);
+    });
+  });
+
+  // ===== MOBILE TABS =====
+  function setMobView(view) {
+    document.getElementById('mobListTab').classList.toggle('active', view === 'list');
+    document.getElementById('mobMapTab').classList.toggle('active', view === 'map');
+    document.querySelector('.results-panel').classList.toggle('mob-hidden', view === 'map');
+    document.querySelector('.map-panel').classList.toggle('mob-active', view === 'map');
+    if (view === 'map' && map) setTimeout(() => map.invalidateSize(), 50);
+  }
+
   // ===== INIT =====
+  const savedTheme = localStorage.getItem('ds-theme') || 'light';
+  document.documentElement.setAttribute('data-theme', savedTheme);
+  document.getElementById('themeToggle').textContent = savedTheme === 'dark' ? '☀' : '☾';
   initMap();
   renderList();
   renderMap();
 </script>
 
 <div id="filterDropdown" class="dropdown" style="display:none;position:fixed;"></div>
+<div class="mobile-tabs">
+  <button class="mobile-tab active" id="mobListTab" onclick="setMobView('list')">≡ &nbsp;List</button>
+  <button class="mobile-tab" id="mobMapTab" onclick="setMobView('map')">◎ &nbsp;Map</button>
+</div>
 </body>
 </html>
